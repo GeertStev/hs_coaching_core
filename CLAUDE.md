@@ -73,6 +73,15 @@ For tree-shaped timing, "flatten to a timeline, then scan" (see `training_flatte
 - Commit early. `lib/` and `pubspec.yaml`/`pubspec.lock` must be tracked in git: a 2026-08-22
   data-loss in `hs_coaching_screen` was unrecoverable because they weren't.
 
+## Errors
+Shared in `lib/core/errors/` and `lib/core/providers/riverpod_config.dart`; both apps use them.
+- Never show a raw error (`Text('Error: $err')`) to the user: show `userMessage(error)` (English).
+  Domain errors with a user-ready text implement `UserFacingException`.
+- Report caught-but-unexpected errors with `reportError(error, stack, context: ...)`; no silent
+  `catch (_) {}`. It only logs to the console for now (no crash-reporting service, by choice).
+- Both `main.dart` call `installGlobalErrorHandlers()` and put `appProviderRetry` +
+  `AppProviderObserver` on the `ProviderScope`.
+
 ## This repo
 - `lib/<feature>/`: model(s) + `*_repository.dart` + pure helpers (e.g. `training/`, `tabata/`).
   `lib/core/`: converters and shared providers (Firebase instances, device ids, server time/connection).
