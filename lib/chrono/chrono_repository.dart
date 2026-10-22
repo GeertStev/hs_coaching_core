@@ -4,7 +4,9 @@ import 'package:hs_coaching_core/chrono/chrono.dart';
 
 /// Read-only base for the `clubs/{clubId}/displays/{displayId}/settings/chrono`
 /// document. `hs_coaching_screen` uses this directly (it never writes);
-/// `hs_coaching_app` extends it to add start/pause/lap/reset writes.
+/// `hs_coaching_app` extends it to add start/pause/lap/reset writes (lap
+/// times from the Lap button and the lane buttons). Both apps format the
+/// times with `chrono_laps.dart`.
 ///
 /// The data lives in Firestore (same as every other content type), not RTDB —
 /// RTDB's only role in this app is as a zero-footprint clock oracle (see
