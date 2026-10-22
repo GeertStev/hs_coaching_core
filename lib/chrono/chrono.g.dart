@@ -14,18 +14,20 @@ _Chrono _$ChronoFromJson(Map<String, dynamic> json) => _Chrono(
       (json['authoritativeStartTimeMillis'] as num?)?.toInt() ?? 0,
   accumulatedElapsedMillis:
       (json['accumulatedElapsedMillis'] as num?)?.toInt() ?? 0,
-  laps:
-      (json['laps'] as List<dynamic>?)
-          ?.map((e) => (e as num).toInt())
+  lapTimes:
+      (json['lapTimes'] as List<dynamic>?)
+          ?.map((e) => ChronoLap.fromJson(e as Map<String, dynamic>))
           .toList() ??
-      const <int>[],
+      const <ChronoLap>[],
+  maxLaps: (json['maxLaps'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$ChronoToJson(_Chrono instance) => <String, dynamic>{
   'status': _$ChronoStatusEnumMap[instance.status]!,
   'authoritativeStartTimeMillis': instance.authoritativeStartTimeMillis,
   'accumulatedElapsedMillis': instance.accumulatedElapsedMillis,
-  'laps': instance.laps,
+  'lapTimes': instance.lapTimes.map((e) => e.toJson()).toList(),
+  'maxLaps': instance.maxLaps,
 };
 
 const _$ChronoStatusEnumMap = {
@@ -33,3 +35,14 @@ const _$ChronoStatusEnumMap = {
   ChronoStatus.running: 'running',
   ChronoStatus.paused: 'paused',
 };
+
+_ChronoLap _$ChronoLapFromJson(Map<String, dynamic> json) => _ChronoLap(
+  elapsedMillis: (json['elapsedMillis'] as num).toInt(),
+  lane: (json['lane'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ChronoLapToJson(_ChronoLap instance) =>
+    <String, dynamic>{
+      'elapsedMillis': instance.elapsedMillis,
+      'lane': instance.lane,
+    };
