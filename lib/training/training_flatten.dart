@@ -50,7 +50,14 @@ void _flattenNodes(
       case TrainingNodeGroup(:final group):
         _flattenGroup(group, path: path, repeats: repeats, into: into);
       case TrainingNodeExercise(:final exercise):
-        _flattenExercise(exercise, path: path, repeats: repeats, into: into);
+        _flattenExercise(
+          exercise,
+          path: path,
+          repeats: repeats,
+          siblingIndex: i,
+          siblingCount: nodes.length,
+          into: into,
+        );
     }
   }
 }
@@ -87,6 +94,8 @@ void _flattenExercise(
   TrainingExercise exercise, {
   required TrainingPath path,
   required List<TrainingStepRepeat> repeats,
+  required int siblingIndex,
+  required int siblingCount,
   required List<TrainingStep> into,
 }) {
   if (exercise.groups.isEmpty) {
@@ -101,6 +110,8 @@ void _flattenExercise(
         groupName: '',
         parameterRows: const [],
         repeats: repeats,
+        siblingIndex: siblingIndex,
+        siblingCount: siblingCount,
       ),
     );
     return;
@@ -126,6 +137,8 @@ void _flattenExercise(
         groupName: row.name,
         parameterRows: row.parameterRows,
         repeats: repeats,
+        siblingIndex: siblingIndex,
+        siblingCount: siblingCount,
       ),
     );
 
@@ -141,6 +154,8 @@ void _flattenExercise(
           groupName: row.name,
           parameterRows: row.parameterRows,
           repeats: repeats,
+          siblingIndex: siblingIndex,
+          siblingCount: siblingCount,
         ),
       );
     }

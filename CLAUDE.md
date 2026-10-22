@@ -38,10 +38,11 @@ with a real config flow is an open issue.
 The Firestore doc holds **config + a runtime pointer** (`status`, `authoritativeStartTimeMillis`,
 `accumulatedElapsedMillis`, in RTDB server-clock ms), never the ticking countdown. A
 `*ScreenController` (`Notifier`) combines the doc stream with `serverTimeOffsetProvider`, derives
-progress with core's pure helpers (`Tabata.progressAt`, `training_flatten`/`training_navigation`/
-`computeTrainingProgress`), and runs a `Timer.periodic` only while running. Only the app advances
-the training pointer (`autoAdvanceDue` → `next()`); the screen reads that flag purely
-informationally. RTDB is used only for `.info/serverTimeOffset` and `.info/connected`
+progress with core's pure helpers (`Tabata.progressAt`, `flattenTraining` + `trainingProgressAt`),
+and runs a `Timer.periodic` only while running. Training's pointer is `currentStepIndex` (index in
+the flattened timeline, so each repeat round is distinct): both apps walk from it through timed
+steps by elapsed time and stop at an untimed step. Only the app moves the pointer (Next/Previous/
+Reset); nothing needs the tablet awake for timed steps to advance. RTDB is used only for `.info/serverTimeOffset` and `.info/connected`
 (`serverConnectionProvider`).
 
 For tree-shaped timing, "flatten to a timeline, then scan" (see `training_flatten.dart`).
