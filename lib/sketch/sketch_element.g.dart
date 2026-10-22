@@ -107,6 +107,7 @@ RectangleElement _$RectangleElementFromJson(Map<String, dynamic> json) =>
         json['fillColor'],
         const ColorConverter().fromJson,
       ),
+      rotation: (json['rotation'] as num?)?.toDouble() ?? 0.0,
       $type: json['runtimeType'] as String?,
     );
 
@@ -122,6 +123,7 @@ Map<String, dynamic> _$RectangleElementToJson(RectangleElement instance) =>
         instance.fillColor,
         const ColorConverter().toJson,
       ),
+      'rotation': instance.rotation,
       'runtimeType': instance.$type,
     };
 

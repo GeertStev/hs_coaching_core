@@ -53,6 +53,8 @@ sealed class SketchElement with _$SketchElement {
     @OffsetConverter() required Offset start,
     @OffsetConverter() required Offset end,
     @ColorConverter() Color? fillColor,
+    // Rotatie in radialen rond het middelpunt; start/end zijn de hoeken vóór rotatie.
+    @Default(0.0) double rotation,
   }) = RectangleElement;
 
   @JsonSerializable(explicitToJson: true)
