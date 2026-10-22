@@ -76,9 +76,12 @@ class DisplaySketchRepositoryBase {
     ).snapshots().map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
 
-  /// Returns a stream of the current sketch ID document.
-  Stream<DocumentSnapshot> watchCurrentSketchIdDoc() {
-    return currentSketchSettingsRef.snapshots();
+  /// Streams the ID of the active sketch (`currentId`), or null if none.
+  Stream<String?> watchCurrentSketchId() {
+    return currentSketchSettingsRef.snapshots().map((snapshot) {
+      final data = snapshot.data() as Map<String, dynamic>?;
+      return data?['currentId'] as String?;
+    });
   }
 
   Stream<Sketch?> watchSketch(String sketchId) {
