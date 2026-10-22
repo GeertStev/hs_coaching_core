@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+lib.zip
 
 # IntelliJ related
 *.iml
@@ -27,36 +28,21 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
-/android/
-/ios/
-/linux/
-/macos/
-/web/
-/windows/
-analysis_options.yaml
-firebase.json
-lib.zip
+
+# Library package: pubspec.lock niet committen (Dart-conventie voor packages;
+# de apps pinnen de versies in hun eigen pubspec.lock)
 pubspec.lock
-pubspec.yaml
-.metadata
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Android signing secrets
-**/android/key.properties
-*.jks
-*.keystore
+# Secrets — nooit committen
+.env
+.env.*
+!.env.example
+*-firebase-adminsdk-*.json
+service-account*.json
+serviceAccount*.json
