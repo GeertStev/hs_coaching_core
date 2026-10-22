@@ -10,7 +10,21 @@ TextSpan buildTextMarkupSpan(
   required TextStyle heading1Style,
   required TextStyle heading2Style,
 }) {
-  final blocks = parseTextMarkup(source);
+  return buildTextMarkupBlocksSpan(
+    parseTextMarkup(source),
+    bodyStyle: bodyStyle,
+    heading1Style: heading1Style,
+    heading2Style: heading2Style,
+  );
+}
+
+/// Zoals [buildTextMarkupSpan], voor al geparste regels.
+TextSpan buildTextMarkupBlocksSpan(
+  List<TextMarkupBlock> blocks, {
+  required TextStyle bodyStyle,
+  required TextStyle heading1Style,
+  required TextStyle heading2Style,
+}) {
   final children = <InlineSpan>[];
   for (var i = 0; i < blocks.length; i++) {
     final block = blocks[i];
@@ -29,6 +43,20 @@ TextSpan buildTextMarkupSpan(
     }
   }
   return TextSpan(style: bodyStyle, children: children);
+}
+
+/// Eén stuk tekst (bv. een tabelcel) met de opmaak van [spans].
+TextSpan buildTextMarkupInlineSpan(
+  List<TextMarkupSpan> spans, {
+  required TextStyle style,
+}) {
+  return TextSpan(
+    style: style,
+    children: [
+      for (final span in spans)
+        TextSpan(text: span.text, style: _spanStyle(style, span)),
+    ],
+  );
 }
 
 TextStyle _spanStyle(TextStyle base, TextMarkupSpan span) {
