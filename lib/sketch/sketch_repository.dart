@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hs_coaching_core/sketch/sketch.dart';
 import 'package:hs_coaching_core/sketch/sketch_element.dart';
+import 'package:hs_coaching_core/sketch/sketch_settings.dart';
 
 /// Read-only base for the `clubs/{clubId}/displays/{displayId}/sketches`
 /// subtree. Each app's writable `SketchRepository` extends this, adding its
@@ -42,6 +43,8 @@ class DisplaySketchRepositoryBase {
     return {...data, 'title': data['name']};
   }
 
+  /// Ongetypeerde ref naar `settings/sketch`, voor merge-writes met
+  /// `FieldValue` (arrayUnion, null zetten). Lezen gaat via [sketchSettingsRef].
   @protected
   DocumentReference get currentSketchSettingsRef {
     return firestore
@@ -51,6 +54,16 @@ class DisplaySketchRepositoryBase {
         .doc(displayId)
         .collection('settings')
         .doc('sketch');
+  }
+
+  /// Getypeerde ref naar `settings/sketch`; `data()` is null als het
+  /// document nog niet bestaat.
+  @protected
+  DocumentReference<SketchSettings> get sketchSettingsRef {
+    return currentSketchSettingsRef.withConverter<SketchSettings>(
+      fromFirestore: (snapshot, _) => SketchSettings.fromJson(snapshot.data()!),
+      toFirestore: (settings, _) => settings.toJson(),
+    );
   }
 
   @protected
@@ -78,10 +91,9 @@ class DisplaySketchRepositoryBase {
 
   /// Streams the ID of the active sketch (`currentId`), or null if none.
   Stream<String?> watchCurrentSketchId() {
-    return currentSketchSettingsRef.snapshots().map((snapshot) {
-      final data = snapshot.data() as Map<String, dynamic>?;
-      return data?['currentId'] as String?;
-    });
+    return sketchSettingsRef
+        .snapshots()
+        .map((snapshot) => snapshot.data()?.currentId);
   }
 
   Stream<Sketch?> watchSketch(String sketchId) {
