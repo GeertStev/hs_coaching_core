@@ -16,19 +16,15 @@ T _$identity<T>(T value) => value;
 mixin _$Training {
 
  List<TrainingNode> get children;// --- Runtime status (Firestore, zelfde document als configuratie) ---
- TrainingStatus get status;/// Start moment van de huidige stap, expressed in RTDB server-clock
+ TrainingStatus get status;/// Start moment van de lopende run vanaf [currentStepIndex], expressed in RTDB server-clock
 /// milliseconds (zie `serverNowMillis` in
 /// `core/providers/server_time_offset_provider.dart`).
- int get authoritativeStartTimeMillis;/// Tijd geaccumuleerd binnen de huidige stap vóór de lopende sessie —
+ int get authoritativeStartTimeMillis;/// Tijd geaccumuleerd sinds [currentStepIndex] vóór de lopende run —
 /// zelfde pauze-boekhouding als Chrono/Tabata.
- int get accumulatedElapsedMillis;/// Pad naar de huidige `TrainingNode` (altijd een oefening — een groep
-/// zelf is nooit "de huidige stap"). Leeg zolang de sessie nog niet
-/// gestart is.
- TrainingPath get currentPath;/// Index van de huidige `TrainingExerciseGroup`-rij binnen de oefening
-/// op [currentPath] — een oefening kan tot `kMaxTrainingExerciseGroups`
-/// timing-rijen hebben, elk een eigen (mogelijk ongetimede) stap.
- int get currentGroupIndex;/// Werk- of rustfase binnen die timing-rij.
- TrainingStepPhase get currentPhase;
+ int get accumulatedElapsedMillis;/// Index in `flattenTraining(this)` van de stap waar de klok voor het
+/// laatst (her)startte — zie de doc comment hierboven. `-1` zolang de
+/// sessie nog niet gestart is.
+ int get currentStepIndex;
 /// Create a copy of Training
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -41,16 +37,16 @@ $TrainingCopyWith<Training> get copyWith => _$TrainingCopyWithImpl<Training>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Training&&const DeepCollectionEquality().equals(other.children, children)&&(identical(other.status, status) || other.status == status)&&(identical(other.authoritativeStartTimeMillis, authoritativeStartTimeMillis) || other.authoritativeStartTimeMillis == authoritativeStartTimeMillis)&&(identical(other.accumulatedElapsedMillis, accumulatedElapsedMillis) || other.accumulatedElapsedMillis == accumulatedElapsedMillis)&&const DeepCollectionEquality().equals(other.currentPath, currentPath)&&(identical(other.currentGroupIndex, currentGroupIndex) || other.currentGroupIndex == currentGroupIndex)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Training&&const DeepCollectionEquality().equals(other.children, children)&&(identical(other.status, status) || other.status == status)&&(identical(other.authoritativeStartTimeMillis, authoritativeStartTimeMillis) || other.authoritativeStartTimeMillis == authoritativeStartTimeMillis)&&(identical(other.accumulatedElapsedMillis, accumulatedElapsedMillis) || other.accumulatedElapsedMillis == accumulatedElapsedMillis)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(children),status,authoritativeStartTimeMillis,accumulatedElapsedMillis,const DeepCollectionEquality().hash(currentPath),currentGroupIndex,currentPhase);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(children),status,authoritativeStartTimeMillis,accumulatedElapsedMillis,currentStepIndex);
 
 @override
 String toString() {
-  return 'Training(children: $children, status: $status, authoritativeStartTimeMillis: $authoritativeStartTimeMillis, accumulatedElapsedMillis: $accumulatedElapsedMillis, currentPath: $currentPath, currentGroupIndex: $currentGroupIndex, currentPhase: $currentPhase)';
+  return 'Training(children: $children, status: $status, authoritativeStartTimeMillis: $authoritativeStartTimeMillis, accumulatedElapsedMillis: $accumulatedElapsedMillis, currentStepIndex: $currentStepIndex)';
 }
 
 
@@ -61,7 +57,7 @@ abstract mixin class $TrainingCopyWith<$Res>  {
   factory $TrainingCopyWith(Training value, $Res Function(Training) _then) = _$TrainingCopyWithImpl;
 @useResult
 $Res call({
- List<TrainingNode> children, TrainingStatus status, int authoritativeStartTimeMillis, int accumulatedElapsedMillis, TrainingPath currentPath, int currentGroupIndex, TrainingStepPhase currentPhase
+ List<TrainingNode> children, TrainingStatus status, int authoritativeStartTimeMillis, int accumulatedElapsedMillis, int currentStepIndex
 });
 
 
@@ -78,16 +74,14 @@ class _$TrainingCopyWithImpl<$Res>
 
 /// Create a copy of Training
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? children = null,Object? status = null,Object? authoritativeStartTimeMillis = null,Object? accumulatedElapsedMillis = null,Object? currentPath = null,Object? currentGroupIndex = null,Object? currentPhase = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? children = null,Object? status = null,Object? authoritativeStartTimeMillis = null,Object? accumulatedElapsedMillis = null,Object? currentStepIndex = null,}) {
   return _then(_self.copyWith(
 children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
 as List<TrainingNode>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as TrainingStatus,authoritativeStartTimeMillis: null == authoritativeStartTimeMillis ? _self.authoritativeStartTimeMillis : authoritativeStartTimeMillis // ignore: cast_nullable_to_non_nullable
 as int,accumulatedElapsedMillis: null == accumulatedElapsedMillis ? _self.accumulatedElapsedMillis : accumulatedElapsedMillis // ignore: cast_nullable_to_non_nullable
-as int,currentPath: null == currentPath ? _self.currentPath : currentPath // ignore: cast_nullable_to_non_nullable
-as TrainingPath,currentGroupIndex: null == currentGroupIndex ? _self.currentGroupIndex : currentGroupIndex // ignore: cast_nullable_to_non_nullable
-as int,currentPhase: null == currentPhase ? _self.currentPhase : currentPhase // ignore: cast_nullable_to_non_nullable
-as TrainingStepPhase,
+as int,currentStepIndex: null == currentStepIndex ? _self.currentStepIndex : currentStepIndex // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -172,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  TrainingPath currentPath,  int currentGroupIndex,  TrainingStepPhase currentPhase)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  int currentStepIndex)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Training() when $default != null:
-return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentPath,_that.currentGroupIndex,_that.currentPhase);case _:
+return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentStepIndex);case _:
   return orElse();
 
 }
@@ -193,10 +187,10 @@ return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  TrainingPath currentPath,  int currentGroupIndex,  TrainingStepPhase currentPhase)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  int currentStepIndex)  $default,) {final _that = this;
 switch (_that) {
 case _Training():
-return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentPath,_that.currentGroupIndex,_that.currentPhase);case _:
+return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentStepIndex);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +207,10 @@ return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  TrainingPath currentPath,  int currentGroupIndex,  TrainingStepPhase currentPhase)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TrainingNode> children,  TrainingStatus status,  int authoritativeStartTimeMillis,  int accumulatedElapsedMillis,  int currentStepIndex)?  $default,) {final _that = this;
 switch (_that) {
 case _Training() when $default != null:
-return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentPath,_that.currentGroupIndex,_that.currentPhase);case _:
+return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_that.accumulatedElapsedMillis,_that.currentStepIndex);case _:
   return null;
 
 }
@@ -228,7 +222,7 @@ return $default(_that.children,_that.status,_that.authoritativeStartTimeMillis,_
 
 @JsonSerializable(explicitToJson: true)
 class _Training implements Training {
-  const _Training({final  List<TrainingNode> children = const <TrainingNode>[], this.status = TrainingStatus.idle, this.authoritativeStartTimeMillis = 0, this.accumulatedElapsedMillis = 0, final  TrainingPath currentPath = const <int>[], this.currentGroupIndex = 0, this.currentPhase = TrainingStepPhase.work}): _children = children,_currentPath = currentPath;
+  const _Training({final  List<TrainingNode> children = const <TrainingNode>[], this.status = TrainingStatus.idle, this.authoritativeStartTimeMillis = 0, this.accumulatedElapsedMillis = 0, this.currentStepIndex = -1}): _children = children;
   factory _Training.fromJson(Map<String, dynamic> json) => _$TrainingFromJson(json);
 
  final  List<TrainingNode> _children;
@@ -240,32 +234,17 @@ class _Training implements Training {
 
 // --- Runtime status (Firestore, zelfde document als configuratie) ---
 @override@JsonKey() final  TrainingStatus status;
-/// Start moment van de huidige stap, expressed in RTDB server-clock
+/// Start moment van de lopende run vanaf [currentStepIndex], expressed in RTDB server-clock
 /// milliseconds (zie `serverNowMillis` in
 /// `core/providers/server_time_offset_provider.dart`).
 @override@JsonKey() final  int authoritativeStartTimeMillis;
-/// Tijd geaccumuleerd binnen de huidige stap vóór de lopende sessie —
+/// Tijd geaccumuleerd sinds [currentStepIndex] vóór de lopende run —
 /// zelfde pauze-boekhouding als Chrono/Tabata.
 @override@JsonKey() final  int accumulatedElapsedMillis;
-/// Pad naar de huidige `TrainingNode` (altijd een oefening — een groep
-/// zelf is nooit "de huidige stap"). Leeg zolang de sessie nog niet
-/// gestart is.
- final  TrainingPath _currentPath;
-/// Pad naar de huidige `TrainingNode` (altijd een oefening — een groep
-/// zelf is nooit "de huidige stap"). Leeg zolang de sessie nog niet
-/// gestart is.
-@override@JsonKey() TrainingPath get currentPath {
-  if (_currentPath is EqualUnmodifiableListView) return _currentPath;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_currentPath);
-}
-
-/// Index van de huidige `TrainingExerciseGroup`-rij binnen de oefening
-/// op [currentPath] — een oefening kan tot `kMaxTrainingExerciseGroups`
-/// timing-rijen hebben, elk een eigen (mogelijk ongetimede) stap.
-@override@JsonKey() final  int currentGroupIndex;
-/// Werk- of rustfase binnen die timing-rij.
-@override@JsonKey() final  TrainingStepPhase currentPhase;
+/// Index in `flattenTraining(this)` van de stap waar de klok voor het
+/// laatst (her)startte — zie de doc comment hierboven. `-1` zolang de
+/// sessie nog niet gestart is.
+@override@JsonKey() final  int currentStepIndex;
 
 /// Create a copy of Training
 /// with the given fields replaced by the non-null parameter values.
@@ -280,16 +259,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Training&&const DeepCollectionEquality().equals(other._children, _children)&&(identical(other.status, status) || other.status == status)&&(identical(other.authoritativeStartTimeMillis, authoritativeStartTimeMillis) || other.authoritativeStartTimeMillis == authoritativeStartTimeMillis)&&(identical(other.accumulatedElapsedMillis, accumulatedElapsedMillis) || other.accumulatedElapsedMillis == accumulatedElapsedMillis)&&const DeepCollectionEquality().equals(other._currentPath, _currentPath)&&(identical(other.currentGroupIndex, currentGroupIndex) || other.currentGroupIndex == currentGroupIndex)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Training&&const DeepCollectionEquality().equals(other._children, _children)&&(identical(other.status, status) || other.status == status)&&(identical(other.authoritativeStartTimeMillis, authoritativeStartTimeMillis) || other.authoritativeStartTimeMillis == authoritativeStartTimeMillis)&&(identical(other.accumulatedElapsedMillis, accumulatedElapsedMillis) || other.accumulatedElapsedMillis == accumulatedElapsedMillis)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_children),status,authoritativeStartTimeMillis,accumulatedElapsedMillis,const DeepCollectionEquality().hash(_currentPath),currentGroupIndex,currentPhase);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_children),status,authoritativeStartTimeMillis,accumulatedElapsedMillis,currentStepIndex);
 
 @override
 String toString() {
-  return 'Training(children: $children, status: $status, authoritativeStartTimeMillis: $authoritativeStartTimeMillis, accumulatedElapsedMillis: $accumulatedElapsedMillis, currentPath: $currentPath, currentGroupIndex: $currentGroupIndex, currentPhase: $currentPhase)';
+  return 'Training(children: $children, status: $status, authoritativeStartTimeMillis: $authoritativeStartTimeMillis, accumulatedElapsedMillis: $accumulatedElapsedMillis, currentStepIndex: $currentStepIndex)';
 }
 
 
@@ -300,7 +279,7 @@ abstract mixin class _$TrainingCopyWith<$Res> implements $TrainingCopyWith<$Res>
   factory _$TrainingCopyWith(_Training value, $Res Function(_Training) _then) = __$TrainingCopyWithImpl;
 @override @useResult
 $Res call({
- List<TrainingNode> children, TrainingStatus status, int authoritativeStartTimeMillis, int accumulatedElapsedMillis, TrainingPath currentPath, int currentGroupIndex, TrainingStepPhase currentPhase
+ List<TrainingNode> children, TrainingStatus status, int authoritativeStartTimeMillis, int accumulatedElapsedMillis, int currentStepIndex
 });
 
 
@@ -317,16 +296,14 @@ class __$TrainingCopyWithImpl<$Res>
 
 /// Create a copy of Training
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? children = null,Object? status = null,Object? authoritativeStartTimeMillis = null,Object? accumulatedElapsedMillis = null,Object? currentPath = null,Object? currentGroupIndex = null,Object? currentPhase = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? children = null,Object? status = null,Object? authoritativeStartTimeMillis = null,Object? accumulatedElapsedMillis = null,Object? currentStepIndex = null,}) {
   return _then(_Training(
 children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
 as List<TrainingNode>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as TrainingStatus,authoritativeStartTimeMillis: null == authoritativeStartTimeMillis ? _self.authoritativeStartTimeMillis : authoritativeStartTimeMillis // ignore: cast_nullable_to_non_nullable
 as int,accumulatedElapsedMillis: null == accumulatedElapsedMillis ? _self.accumulatedElapsedMillis : accumulatedElapsedMillis // ignore: cast_nullable_to_non_nullable
-as int,currentPath: null == currentPath ? _self._currentPath : currentPath // ignore: cast_nullable_to_non_nullable
-as TrainingPath,currentGroupIndex: null == currentGroupIndex ? _self.currentGroupIndex : currentGroupIndex // ignore: cast_nullable_to_non_nullable
-as int,currentPhase: null == currentPhase ? _self.currentPhase : currentPhase // ignore: cast_nullable_to_non_nullable
-as TrainingStepPhase,
+as int,currentStepIndex: null == currentStepIndex ? _self.currentStepIndex : currentStepIndex // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

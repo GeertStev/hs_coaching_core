@@ -290,4 +290,53 @@ void main() {
       },
     );
   });
+
+  group('flattenTraining — herhalingen en stapnummers', () {
+    final training = Training(
+      children: [
+        TrainingNode.group(
+          group: TrainingGroup(
+            id: 's1',
+            title: 'Set',
+            repeatCount: 2,
+            children: [
+              _exerciseNode(
+                'e1',
+                'Een',
+                groups: const [
+                  TrainingExerciseGroup(
+                    id: 'g1',
+                    workSeconds: 20,
+                    deltaSeconds: 5,
+                  ),
+                ],
+              ),
+              _exerciseNode(
+                'e2',
+                'Twee',
+                groups: const [
+                  TrainingExerciseGroup(id: 'g2', workSeconds: 30),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    test('elke ronde levert eigen stappen op met de juiste iteratie', () {
+      final steps = flattenTraining(training);
+
+      expect(steps, hasLength(4));
+      expect(steps.map((s) => s.repeats.single.iteration), [1, 1, 2, 2]);
+      expect(steps[2].durationMillis, 25000);
+    });
+
+    test('siblingIndex/siblingCount tellen de oefening binnen de set', () {
+      final steps = flattenTraining(training);
+
+      expect(steps.map((s) => s.siblingIndex), [0, 1, 0, 1]);
+      expect(steps.every((s) => s.siblingCount == 2), isTrue);
+    });
+  });
 }

@@ -1,19 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hs_coaching_core/training/training.dart';
 import 'package:hs_coaching_core/training/training_session_progress.dart';
 import 'package:hs_coaching_core/training/training_status.dart';
 import 'package:hs_coaching_core/training/training_step.dart';
 import 'package:hs_coaching_core/training/training_step_phase.dart';
 
-TrainingStep _timedStep(int durationMillis) => TrainingStep(
+TrainingStep _timedStep(int durationMillis, {String id = 'e1'}) => TrainingStep(
   path: const [0],
   groupIndex: 0,
   phase: TrainingStepPhase.work,
   durationMillis: durationMillis,
-  exerciseId: 'e1',
+  exerciseId: id,
   exerciseTitle: 'Sprint',
   groupName: '',
   parameterRows: const [],
   repeats: const [],
+  siblingIndex: 0,
+  siblingCount: 1,
 );
 
 TrainingStep _untimedStep() => TrainingStep(
@@ -26,6 +29,8 @@ TrainingStep _untimedStep() => TrainingStep(
   groupName: '',
   parameterRows: const [],
   repeats: const [],
+  siblingIndex: 0,
+  siblingCount: 1,
 );
 
 void main() {
@@ -34,103 +39,147 @@ void main() {
       final progress = computeTrainingProgress(
         steps: const [],
         status: TrainingStatus.idle,
-        pointer: const TrainingStepPointer(-1),
-        elapsedInStepMillis: 0,
+        anchorStepIndex: -1,
+        elapsedSinceAnchorMillis: 0,
       );
 
       expect(progress.isFinished, isTrue);
       expect(progress.currentStep, isNull);
     });
 
-    test('pointer vóór de start (-1): geen huidige stap, niet finished', () {
-      final steps = [_timedStep(10000)];
-
+    test('anker vóór de start (-1): geen huidige stap, niet finished', () {
       final progress = computeTrainingProgress(
-        steps: steps,
+        steps: [_timedStep(10000)],
         status: TrainingStatus.idle,
-        pointer: const TrainingStepPointer(-1),
-        elapsedInStepMillis: 0,
+        anchorStepIndex: -1,
+        elapsedSinceAnchorMillis: 0,
       );
 
       expect(progress.isFinished, isFalse);
+      expect(progress.isBeforeStart, isTrue);
       expect(progress.currentStep, isNull);
-      expect(progress.stepIndex, -1);
     });
 
-    test('pointer voorbij de laatste stap is finished', () {
-      final steps = [_timedStep(10000)];
-
+    test('anker voorbij de laatste stap is finished', () {
       final progress = computeTrainingProgress(
-        steps: steps,
+        steps: [_timedStep(10000)],
         status: TrainingStatus.running,
-        pointer: const TrainingStepPointer(1),
-        elapsedInStepMillis: 0,
+        anchorStepIndex: 1,
+        elapsedSinceAnchorMillis: 0,
       );
 
       expect(progress.isFinished, isTrue);
+      expect(progress.stepIndex, 1);
     });
 
-    test('ongetimede stap: remaining null, autoAdvanceDue altijd false', () {
-      final steps = [_untimedStep()];
-
-      final running = computeTrainingProgress(
-        steps: steps,
+    test('ongetimede stap: remaining null, blijft staan', () {
+      final progress = computeTrainingProgress(
+        steps: [_untimedStep(), _timedStep(10000)],
         status: TrainingStatus.running,
-        pointer: const TrainingStepPointer(0),
-        elapsedInStepMillis: 999999,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 999999,
       );
 
-      expect(running.currentStep, isNotNull);
-      expect(running.remaining, isNull);
-      expect(running.autoAdvanceDue, isFalse);
+      expect(progress.stepIndex, 0);
+      expect(progress.remaining, isNull);
+      expect(progress.isTicking, isFalse);
     });
 
     test('getimede stap, nog niet afgelopen: resterende tijd correct', () {
-      final steps = [_timedStep(10000)];
-
       final progress = computeTrainingProgress(
-        steps: steps,
+        steps: [_timedStep(10000)],
         status: TrainingStatus.running,
-        pointer: const TrainingStepPointer(0),
-        elapsedInStepMillis: 4000,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 4000,
       );
 
       expect(progress.remaining, const Duration(milliseconds: 6000));
-      expect(progress.autoAdvanceDue, isFalse);
+      expect(progress.isTicking, isTrue);
     });
 
-    test(
-      'getimede stap, afgelopen én running: autoAdvanceDue true, '
-      'remaining geklemd op 0',
-      () {
-        final steps = [_timedStep(10000)];
+    test('afgelopen getimede stap loopt door naar de volgende stap', () {
+      final progress = computeTrainingProgress(
+        steps: [
+          _timedStep(10000),
+          _timedStep(20000, id: 'e2'),
+        ],
+        status: TrainingStatus.running,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 15000,
+      );
 
-        final progress = computeTrainingProgress(
-          steps: steps,
-          status: TrainingStatus.running,
-          pointer: const TrainingStepPointer(0),
-          elapsedInStepMillis: 15000,
-        );
+      expect(progress.stepIndex, 1);
+      expect(progress.remaining, const Duration(milliseconds: 15000));
+    });
 
-        expect(progress.autoAdvanceDue, isTrue);
-        expect(progress.remaining, Duration.zero);
-      },
-    );
+    test('doorlopen stopt bij de eerste ongetimede stap', () {
+      final progress = computeTrainingProgress(
+        steps: [_timedStep(10000), _untimedStep(), _timedStep(10000)],
+        status: TrainingStatus.running,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 60000,
+      );
 
-    test(
-      'getimede stap, afgelopen maar gepauzeerd: geen auto-advance',
-      () {
-        final steps = [_timedStep(10000)];
+      expect(progress.stepIndex, 1);
+      expect(progress.remaining, isNull);
+    });
 
-        final progress = computeTrainingProgress(
-          steps: steps,
-          status: TrainingStatus.paused,
-          pointer: const TrainingStepPointer(0),
-          elapsedInStepMillis: 15000,
-        );
+    test('doorlopen voorbij de laatste getimede stap is finished', () {
+      final progress = computeTrainingProgress(
+        steps: [_timedStep(10000), _timedStep(10000)],
+        status: TrainingStatus.running,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 20000,
+      );
 
-        expect(progress.autoAdvanceDue, isFalse);
-      },
-    );
+      expect(progress.isFinished, isTrue);
+      expect(progress.stepIndex, 2);
+    });
+
+    test('gepauzeerd: zelfde positie, tikt niet', () {
+      final progress = computeTrainingProgress(
+        steps: [_timedStep(10000), _timedStep(10000)],
+        status: TrainingStatus.paused,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 12000,
+      );
+
+      expect(progress.stepIndex, 1);
+      expect(progress.remaining, const Duration(milliseconds: 8000));
+      expect(progress.isTicking, isFalse);
+    });
+
+    test('remainingSeconds rondt naar boven af', () {
+      final progress = computeTrainingProgress(
+        steps: [_timedStep(10000)],
+        status: TrainingStatus.running,
+        anchorStepIndex: 0,
+        elapsedSinceAnchorMillis: 9100,
+      );
+
+      expect(progress.remainingSeconds, 1);
+    });
+  });
+
+  group('trainingElapsedMillis', () {
+    test('running telt de tijd sinds de start bij het geaccumuleerde op', () {
+      const training = Training(
+        status: TrainingStatus.running,
+        authoritativeStartTimeMillis: 1000,
+        accumulatedElapsedMillis: 500,
+      );
+
+      expect(trainingElapsedMillis(training, 3000), 2500);
+    });
+
+    test('gepauzeerd telt alleen het geaccumuleerde', () {
+      const training = Training(
+        status: TrainingStatus.paused,
+        authoritativeStartTimeMillis: 1000,
+        accumulatedElapsedMillis: 500,
+      );
+
+      expect(trainingElapsedMillis(training, 3000), 500);
+    });
   });
 }

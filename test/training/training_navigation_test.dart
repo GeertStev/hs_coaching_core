@@ -1,90 +1,53 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hs_coaching_core/training/training_navigation.dart';
 import 'package:hs_coaching_core/training/training_session_progress.dart';
-import 'package:hs_coaching_core/training/training_step.dart';
-import 'package:hs_coaching_core/training/training_step_phase.dart';
+import 'package:hs_coaching_core/training/training_status.dart';
 
-TrainingStep _step(List<int> path, int groupIndex, TrainingStepPhase phase) =>
-    TrainingStep(
-      path: path,
-      groupIndex: groupIndex,
-      phase: phase,
-      durationMillis: 10000,
-      exerciseId: path.join('.'),
-      exerciseTitle: 'Stap $path/$groupIndex/${phase.name}',
-      groupName: '',
-      parameterRows: const [],
-      repeats: const [],
+TrainingSessionProgress _at(int stepIndex, {int totalSteps = 3}) =>
+    TrainingSessionProgress(
+      status: stepIndex >= totalSteps
+          ? TrainingStatus.finished
+          : TrainingStatus.running,
+      currentStep: null,
+      stepIndex: stepIndex,
+      totalSteps: totalSteps,
+      remaining: null,
     );
 
 void main() {
-  final steps = [
-    _step([0], 0, TrainingStepPhase.work),
-    _step([0], 0, TrainingStepPhase.rest),
-    _step([1], 0, TrainingStepPhase.work),
-  ];
-
-  group('pointerFor', () {
-    test('leeg pad -> -1 (nog niet gestart)', () {
-      final pointer = pointerFor(
-        steps,
-        path: const [],
-        groupIndex: 0,
-        phase: TrainingStepPhase.work,
-      );
-      expect(pointer.index, -1);
-      expect(pointer.isBeforeStart, isTrue);
+  group('nextStepIndex', () {
+    test('vóór de start gaat naar de eerste stap', () {
+      expect(nextStepIndex(_at(-1)), 0);
     });
 
-    test('bestaande combinatie vindt de juiste index', () {
-      final pointer = pointerFor(
-        steps,
-        path: const [1],
-        groupIndex: 0,
-        phase: TrainingStepPhase.work,
-      );
-      expect(pointer.index, 2);
+    test('gaat één stap vooruit', () {
+      expect(nextStepIndex(_at(1)), 2);
     });
 
-    test('niet-bestaande combinatie -> -1', () {
-      final pointer = pointerFor(
-        steps,
-        path: const [5],
-        groupIndex: 0,
-        phase: TrainingStepPhase.work,
-      );
-      expect(pointer.index, -1);
+    test('vanaf de laatste stap naar voorbij het einde', () {
+      expect(nextStepIndex(_at(2)), 3);
+    });
+
+    test('blijft voorbij het einde staan', () {
+      expect(nextStepIndex(_at(3)), 3);
     });
   });
 
-  group('nextStepPointer / previousStepPointer', () {
-    test('next vanaf -1 (nog niet gestart) gaat naar de eerste stap', () {
-      final next = nextStepPointer(steps, const TrainingStepPointer(-1));
-      expect(next.index, 0);
+  group('previousStepIndex', () {
+    test('vóór de start: niets', () {
+      expect(previousStepIndex(_at(-1)), isNull);
     });
 
-    test('next vanaf de laatste stap beweegt voorbij het einde', () {
-      final next = nextStepPointer(
-        steps,
-        TrainingStepPointer(steps.length - 1),
-      );
-      expect(next.index, steps.length);
+    test('blijft op de eerste stap staan', () {
+      expect(previousStepIndex(_at(0)), 0);
     });
 
-    test('previous vanaf de eerste stap blijft op de eerste stap staan', () {
-      final previous = previousStepPointer(
-        steps,
-        const TrainingStepPointer(0),
-      );
-      expect(previous.index, 0);
+    test('gaat één stap terug', () {
+      expect(previousStepIndex(_at(2)), 1);
     });
 
-    test('previous vanaf een latere stap gaat één terug', () {
-      final previous = previousStepPointer(
-        steps,
-        const TrainingStepPointer(2),
-      );
-      expect(previous.index, 1);
+    test('vanuit een afgelopen sessie naar de laatste stap', () {
+      expect(previousStepIndex(_at(3)), 2);
     });
   });
 }

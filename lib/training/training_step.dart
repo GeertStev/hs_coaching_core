@@ -38,6 +38,8 @@ class TrainingStep {
     required this.groupName,
     required this.parameterRows,
     required this.repeats,
+    required this.siblingIndex,
+    required this.siblingCount,
   });
 
   final TrainingPath path;
@@ -59,6 +61,14 @@ class TrainingStep {
   /// Herhalings-context van buiten naar binnen; leeg als geen enkele
   /// omringende groep een `repeatCount > 1` heeft.
   final List<TrainingStepRepeat> repeats;
+
+  /// 0-gebaseerde positie van de oefening binnen haar ouder (de omringende
+  /// groep, of de root) — de "Stap x/y" binnen een set. Alle timing-rijen en
+  /// werk/rust-fases van één oefening delen dezelfde waarde.
+  final int siblingIndex;
+
+  /// Aantal kinderen (oefeningen + subgroepen) van die ouder.
+  final int siblingCount;
 
   bool get isTimed => durationMillis != null;
 }
