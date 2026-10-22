@@ -7,10 +7,16 @@
 ///   een regel;
 /// - `**vet**`, `_cursief_` en `++onderlijnd++` binnen een regel. Een
 ///   opmaakcode zonder sluitende tegenhanger op dezelfde regel blijft gewoon
-///   tekst (bv. `snake_case` of `2 ** 3`).
+///   tekst (bv. `snake_case` of `2 ** 3`);
+/// - kolommen: tekst tussen een `{`- en een `}`-regel (elk alleen op een
+///   regel) is één kolom. Blokken vlak na elkaar (enkel witregels ertussen)
+///   vormen één rij, max [maxTextColumns]; een volgend blok start een nieuwe
+///   rij. Zonder `}` loopt de kolom door tot het einde;
+/// - tabellen in Markdown-stijl: een `| a | b |`-regel gevolgd door een
+///   scheidingsregel `|---|---|` is de kop, volgende `|`-regels de rijen.
 ///
 /// Puur Dart: de app gebruikt het voor de knoppen en het voorbeeld, het
-/// scherm voor de weergave (zie `text_markup_span.dart`).
+/// scherm voor de weergave (zie `text_markup_view.dart`).
 library;
 
 enum TextMarkupBlockType { paragraph, heading1, heading2 }
@@ -78,8 +84,161 @@ List<TextMarkupBlock> parseTextMarkup(String source) {
 }
 
 /// De tekst zonder opmaakcodes, bv. voor de lijst in de app en om te zoeken.
+/// Kolommen komen onder elkaar, tabelcellen gescheiden door twee spaties.
 String stripTextMarkup(String source) {
-  return parseTextMarkup(source).map((b) => b.plainText).join('\n');
+  return _plainSections(parseTextDocument(source)).join('\n');
+}
+
+List<String> _plainSections(List<TextMarkupSection> sections) {
+  return [
+    for (final section in sections)
+      ...switch (section) {
+        TextMarkupLines(:final lines) => lines.map((l) => l.plainText),
+        TextMarkupTable(:final rows) => rows.map(
+          (row) => row.map((cell) => cell.map((s) => s.text).join()).join('  '),
+        ),
+        TextMarkupColumns(:final columns) => columns.expand(_plainSections),
+      },
+  ];
+}
+
+/// Maximum aantal kolommen naast elkaar.
+const maxTextColumns = 3;
+
+/// Een stuk van de tekst: gewone regels, een tabel of een rij kolommen.
+sealed class TextMarkupSection {
+  const TextMarkupSection();
+}
+
+class TextMarkupLines extends TextMarkupSection {
+  const TextMarkupLines(this.lines);
+
+  final List<TextMarkupBlock> lines;
+}
+
+/// Tabel; de eerste rij is de kop. Alle rijen hebben evenveel cellen.
+class TextMarkupTable extends TextMarkupSection {
+  const TextMarkupTable(this.rows);
+
+  final List<List<List<TextMarkupSpan>>> rows;
+
+  int get columnCount => rows.first.length;
+}
+
+/// Rij kolommen; elke kolom bevat regels en tabellen (geen kolommen).
+class TextMarkupColumns extends TextMarkupSection {
+  const TextMarkupColumns(this.columns);
+
+  final List<List<TextMarkupSection>> columns;
+}
+
+/// Zet [source] om naar stukken: gewone regels, tabellen en kolommen.
+List<TextMarkupSection> parseTextDocument(String source) {
+  final lines = source.split('\n');
+  final sections = <TextMarkupSection>[];
+  final flow = <String>[];
+  var i = 0;
+
+  void flushFlow() {
+    sections.addAll(_parseFlow(flow));
+    flow.clear();
+  }
+
+  while (i < lines.length) {
+    if (!_isColumnStart(lines[i])) {
+      flow.add(lines[i]);
+      i++;
+      continue;
+    }
+    flushFlow();
+    final columns = <List<TextMarkupSection>>[];
+    while (i < lines.length &&
+        _isColumnStart(lines[i]) &&
+        columns.length < maxTextColumns) {
+      i++; // `{`
+      final columnLines = <String>[];
+      while (i < lines.length && !_isColumnEnd(lines[i])) {
+        columnLines.add(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++; // `}`
+      columns.add(_parseFlow(columnLines));
+      // Witregels tussen twee blokken horen bij de rij.
+      var next = i;
+      while (next < lines.length && lines[next].trim().isEmpty) {
+        next++;
+      }
+      if (next < lines.length && _isColumnStart(lines[next])) i = next;
+    }
+    sections.add(TextMarkupColumns(columns));
+  }
+  flushFlow();
+  return sections;
+}
+
+bool _isColumnStart(String line) => line.trim() == '{';
+bool _isColumnEnd(String line) => line.trim() == '}';
+
+/// Regels en tabellen (zonder kolommen).
+List<TextMarkupSection> _parseFlow(List<String> lines) {
+  final sections = <TextMarkupSection>[];
+  final plain = <String>[];
+
+  void flushPlain() {
+    if (plain.isEmpty) return;
+    sections.add(TextMarkupLines(plain.map(_parseLine).toList()));
+    plain.clear();
+  }
+
+  var i = 0;
+  while (i < lines.length) {
+    if (_isTableRow(lines[i]) &&
+        i + 1 < lines.length &&
+        _isTableSeparator(lines[i + 1])) {
+      flushPlain();
+      final rows = [_tableCells(lines[i])];
+      i += 2;
+      while (i < lines.length && _isTableRow(lines[i])) {
+        rows.add(_tableCells(lines[i]));
+        i++;
+      }
+      sections.add(_buildTable(rows));
+      continue;
+    }
+    plain.add(lines[i]);
+    i++;
+  }
+  flushPlain();
+  return sections;
+}
+
+bool _isTableRow(String line) => line.trimLeft().startsWith('|');
+
+final _separatorCell = RegExp(r'^\s*:?-+:?\s*$');
+
+bool _isTableSeparator(String line) {
+  if (!_isTableRow(line)) return false;
+  final cells = _tableCells(line);
+  return cells.isNotEmpty && cells.every(_separatorCell.hasMatch);
+}
+
+/// `| a | b |` → `['a', 'b']`; de buitenste pipes zijn optioneel aan het eind.
+List<String> _tableCells(String line) {
+  var content = line.trim();
+  if (content.startsWith('|')) content = content.substring(1);
+  if (content.endsWith('|')) content = content.substring(0, content.length - 1);
+  return content.split('|').map((cell) => cell.trim()).toList();
+}
+
+TextMarkupTable _buildTable(List<List<String>> rows) {
+  final width = rows.first.length;
+  return TextMarkupTable([
+    for (final row in rows)
+      [
+        for (var c = 0; c < width; c++)
+          _parseInline(c < row.length ? row[c] : ''),
+      ],
+  ]);
 }
 
 TextMarkupBlock _parseLine(String line) {
