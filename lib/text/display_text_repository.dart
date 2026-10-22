@@ -53,9 +53,12 @@ class DisplayTextRepositoryBase {
         .doc('text');
   }
 
-  /// Returns a stream of the current text ID document.
-  Stream<DocumentSnapshot> watchCurrentTextIdDoc() {
-    return currentTextRef.snapshots();
+  /// Streams the ID of the active text (`currentId`), or null if none.
+  Stream<String?> watchCurrentTextId() {
+    return currentTextRef.snapshots().map((snapshot) {
+      final data = snapshot.data() as Map<String, dynamic>?;
+      return data?['currentId'] as String?;
+    });
   }
 
   /// Watches the currently active display text. Uses `switchMap` (rather
@@ -63,9 +66,7 @@ class DisplayTextRepositoryBase {
   /// showing is reflected immediately, and switching `currentId` cancels the
   /// previous text's listener instead of leaving it dangling.
   Stream<DisplayText?> watchCurrentText() {
-    return watchCurrentTextIdDoc().switchMap((snapshot) {
-      final data = snapshot.data() as Map<String, dynamic>?;
-      final currentId = data?['currentId'] as String?;
+    return watchCurrentTextId().switchMap((currentId) {
       if (currentId == null) return Stream.value(null);
       return textsRef.doc(currentId).snapshots().map((doc) => doc.data());
     });

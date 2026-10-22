@@ -54,9 +54,12 @@ class DisplayImageRepositoryBase {
         .doc('image');
   }
 
-  /// Returns a stream of the current image ID document.
-  Stream<DocumentSnapshot> watchCurrentImageIdDoc() {
-    return currentImageRef.snapshots();
+  /// Streams the ID of the active image (`currentId`), or null if none.
+  Stream<String?> watchCurrentImageId() {
+    return currentImageRef.snapshots().map((snapshot) {
+      final data = snapshot.data() as Map<String, dynamic>?;
+      return data?['currentId'] as String?;
+    });
   }
 
   /// Watches the currently active display image. Uses `switchMap` (rather
@@ -64,9 +67,7 @@ class DisplayImageRepositoryBase {
   /// showing is reflected immediately, and switching `currentId` cancels the
   /// previous image's listener instead of leaving it dangling.
   Stream<DisplayImage?> watchCurrentImage() {
-    return watchCurrentImageIdDoc().switchMap((snapshot) {
-      final data = snapshot.data() as Map<String, dynamic>?;
-      final currentId = data?['currentId'] as String?;
+    return watchCurrentImageId().switchMap((currentId) {
       if (currentId == null) return Stream.value(null);
       return imagesRef.doc(currentId).snapshots().map((doc) => doc.data());
     });
