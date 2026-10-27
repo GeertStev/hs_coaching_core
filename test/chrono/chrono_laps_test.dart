@@ -133,6 +133,46 @@ void main() {
     });
   });
 
+  group('isChronoFinished', () {
+    test('zonder maximum of zonder tijden nooit klaar', () {
+      expect(
+        isChronoFinished(
+          const Chrono(lapTimes: [ChronoLap(elapsedMillis: 1000)]),
+        ),
+        isFalse,
+      );
+      expect(isChronoFinished(const Chrono(maxLaps: 2)), isFalse);
+    });
+
+    test('Lap-knop: klaar bij de laatste lap', () {
+      const one = Chrono(maxLaps: 2, lapTimes: [ChronoLap(elapsedMillis: 1000)]);
+      expect(isChronoFinished(one), isFalse);
+      final two = one.copyWith(
+        lapTimes: [...one.lapTimes, const ChronoLap(elapsedMillis: 2000)],
+      );
+      expect(isChronoFinished(two), isTrue);
+    });
+
+    test('banen: pas klaar als elke meezwemmende baan zijn finale heeft', () {
+      const chrono = Chrono(
+        maxLaps: 2,
+        lapTimes: [
+          ChronoLap(elapsedMillis: 1000, lane: 1),
+          ChronoLap(elapsedMillis: 1200, lane: 3),
+          ChronoLap(elapsedMillis: 2000, lane: 1),
+        ],
+      );
+      expect(isChronoFinished(chrono), isFalse);
+      final done = chrono.copyWith(
+        lapTimes: [
+          ...chrono.lapTimes,
+          const ChronoLap(elapsedMillis: 2500, lane: 3),
+        ],
+      );
+      expect(isChronoFinished(done), isTrue);
+    });
+  });
+
   test('met maxLaps is de laatste lap de finale', () {
     final rows = chronoLapRows(const [
       ChronoLap(elapsedMillis: 1000, lane: 1),
