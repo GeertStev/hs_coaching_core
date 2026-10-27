@@ -145,7 +145,10 @@ void main() {
     });
 
     test('Lap-knop: klaar bij de laatste lap', () {
-      const one = Chrono(maxLaps: 2, lapTimes: [ChronoLap(elapsedMillis: 1000)]);
+      const one = Chrono(
+        maxLaps: 2,
+        lapTimes: [ChronoLap(elapsedMillis: 1000)],
+      );
       expect(isChronoFinished(one), isFalse);
       final two = one.copyWith(
         lapTimes: [...one.lapTimes, const ChronoLap(elapsedMillis: 2000)],
