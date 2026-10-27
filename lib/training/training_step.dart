@@ -2,11 +2,14 @@ import 'package:hs_coaching_core/training/training_parameter_row.dart';
 import 'package:hs_coaching_core/training/training_path.dart';
 import 'package:hs_coaching_core/training/training_step_phase.dart';
 
-/// Eén herhalings-context: welke iteratie van welke `TrainingGroup` een
-/// stap in zit. Een stap kan door meerdere geneste herhalende groepen
-/// omringd zijn (max-diepte-3 laat tot 2 geneste `TrainingGroup`-niveaus
-/// boven een oefening toe) — `TrainingStep.repeats` bevat er dus voor elk
-/// zo'n niveau (met `repeatCount > 1`) één, van buiten naar binnen.
+/// Eén herhalings-context: welke iteratie van welke `TrainingGroup` (of van
+/// de oefening zelf, via `TrainingExercise.repeatCount`) een stap in zit.
+/// Een stap kan door meerdere geneste herhalende groepen omringd zijn
+/// (max-diepte-3 laat tot 2 geneste `TrainingGroup`-niveaus boven een
+/// oefening toe) — `TrainingStep.repeats` bevat er dus voor elk zo'n niveau
+/// (met `repeatCount > 1`) één, van buiten naar binnen; een herhalende
+/// oefening komt als binnenste niveau achteraan, met [groupId] = de id van
+/// de oefening en [groupTitle] `'Round'`.
 class TrainingStepRepeat {
   const TrainingStepRepeat({
     required this.groupId,
@@ -59,7 +62,7 @@ class TrainingStep {
   final List<TrainingParameterRow> parameterRows;
 
   /// Herhalings-context van buiten naar binnen; leeg als geen enkele
-  /// omringende groep een `repeatCount > 1` heeft.
+  /// omringende groep (of de oefening zelf) een `repeatCount > 1` heeft.
   final List<TrainingStepRepeat> repeats;
 
   /// 0-gebaseerde positie van de oefening binnen haar ouder (de omringende
