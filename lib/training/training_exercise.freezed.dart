@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TrainingExercise {
 
- String get id; String get title; List<TrainingExerciseGroup> get groups;
+ String get id; String get title; int get repeatCount; List<TrainingExerciseGroup> get groups;
 /// Create a copy of TrainingExercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TrainingExerciseCopyWith<TrainingExercise> get copyWith => _$TrainingExerciseCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrainingExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.groups, groups));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrainingExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount)&&const DeepCollectionEquality().equals(other.groups, groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(groups));
+int get hashCode => Object.hash(runtimeType,id,title,repeatCount,const DeepCollectionEquality().hash(groups));
 
 @override
 String toString() {
-  return 'TrainingExercise(id: $id, title: $title, groups: $groups)';
+  return 'TrainingExercise(id: $id, title: $title, repeatCount: $repeatCount, groups: $groups)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TrainingExerciseCopyWith<$Res>  {
   factory $TrainingExerciseCopyWith(TrainingExercise value, $Res Function(TrainingExercise) _then) = _$TrainingExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, List<TrainingExerciseGroup> groups
+ String id, String title, int repeatCount, List<TrainingExerciseGroup> groups
 });
 
 
@@ -65,11 +65,12 @@ class _$TrainingExerciseCopyWithImpl<$Res>
 
 /// Create a copy of TrainingExercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? groups = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? repeatCount = null,Object? groups = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
+as String,repeatCount: null == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
 as List<TrainingExerciseGroup>,
   ));
 }
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  List<TrainingExerciseGroup> groups)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  int repeatCount,  List<TrainingExerciseGroup> groups)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TrainingExercise() when $default != null:
-return $default(_that.id,_that.title,_that.groups);case _:
+return $default(_that.id,_that.title,_that.repeatCount,_that.groups);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.id,_that.title,_that.groups);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  List<TrainingExerciseGroup> groups)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  int repeatCount,  List<TrainingExerciseGroup> groups)  $default,) {final _that = this;
 switch (_that) {
 case _TrainingExercise():
-return $default(_that.id,_that.title,_that.groups);case _:
+return $default(_that.id,_that.title,_that.repeatCount,_that.groups);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.id,_that.title,_that.groups);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  List<TrainingExerciseGroup> groups)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  int repeatCount,  List<TrainingExerciseGroup> groups)?  $default,) {final _that = this;
 switch (_that) {
 case _TrainingExercise() when $default != null:
-return $default(_that.id,_that.title,_that.groups);case _:
+return $default(_that.id,_that.title,_that.repeatCount,_that.groups);case _:
   return null;
 
 }
@@ -211,11 +212,12 @@ return $default(_that.id,_that.title,_that.groups);case _:
 
 @JsonSerializable(explicitToJson: true)
 class _TrainingExercise implements TrainingExercise {
-  const _TrainingExercise({required this.id, required this.title, final  List<TrainingExerciseGroup> groups = const <TrainingExerciseGroup>[]}): _groups = groups;
+  const _TrainingExercise({required this.id, required this.title, this.repeatCount = 1, final  List<TrainingExerciseGroup> groups = const <TrainingExerciseGroup>[]}): _groups = groups;
   factory _TrainingExercise.fromJson(Map<String, dynamic> json) => _$TrainingExerciseFromJson(json);
 
 @override final  String id;
 @override final  String title;
+@override@JsonKey() final  int repeatCount;
  final  List<TrainingExerciseGroup> _groups;
 @override@JsonKey() List<TrainingExerciseGroup> get groups {
   if (_groups is EqualUnmodifiableListView) return _groups;
@@ -237,16 +239,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrainingExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._groups, _groups));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrainingExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount)&&const DeepCollectionEquality().equals(other._groups, _groups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(_groups));
+int get hashCode => Object.hash(runtimeType,id,title,repeatCount,const DeepCollectionEquality().hash(_groups));
 
 @override
 String toString() {
-  return 'TrainingExercise(id: $id, title: $title, groups: $groups)';
+  return 'TrainingExercise(id: $id, title: $title, repeatCount: $repeatCount, groups: $groups)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$TrainingExerciseCopyWith<$Res> implements $TrainingExerci
   factory _$TrainingExerciseCopyWith(_TrainingExercise value, $Res Function(_TrainingExercise) _then) = __$TrainingExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, List<TrainingExerciseGroup> groups
+ String id, String title, int repeatCount, List<TrainingExerciseGroup> groups
 });
 
 
@@ -274,11 +276,12 @@ class __$TrainingExerciseCopyWithImpl<$Res>
 
 /// Create a copy of TrainingExercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? groups = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? repeatCount = null,Object? groups = null,}) {
   return _then(_TrainingExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,groups: null == groups ? _self._groups : groups // ignore: cast_nullable_to_non_nullable
+as String,repeatCount: null == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int,groups: null == groups ? _self._groups : groups // ignore: cast_nullable_to_non_nullable
 as List<TrainingExerciseGroup>,
   ));
 }

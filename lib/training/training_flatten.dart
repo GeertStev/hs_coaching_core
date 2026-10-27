@@ -12,7 +12,9 @@ import 'package:hs_coaching_core/training/training_step_phase.dart';
 /// sessie-tijdlijn die de live-sessiecontroller (coach-app en display)
 /// gebruikt. Rolt elke `TrainingGroup.repeatCount` uit tot losse herhaalde
 /// substappen (zoals Tabata's rondes/sets), en itereert per oefening over
-/// haar timing-rijen (`TrainingExercise.groups`).
+/// haar timing-rijen (`TrainingExercise.groups`). Een oefening met
+/// `repeatCount > 1` wordt op dezelfde manier uitgerold: alle rijen, N keer
+/// na elkaar, met een eigen (binnenste) `TrainingStepRepeat`.
 ///
 /// Elke rij levert altijd een werk-stap op (getimed als `workSeconds > 0`,
 /// anders ongetimed) en alleen een rust-stap als `restSeconds > 0` — een rij
@@ -23,7 +25,7 @@ import 'package:hs_coaching_core/training/training_step_phase.dart';
 /// reden ook precies één ongetimede stap op.
 ///
 /// `deltaSeconds` verschuift `workSeconds` per iteratie van de dichtstbije
-/// omringende herhalende groep (`repeatCount > 1`) — zelfde idee als
+/// omringende herhaling (`repeatCount > 1`, de oefening zelf meegerekend) — zelfde idee als
 /// Tabata's `stepSeconds`/`workSecondsForRound`, maar hier per timing-rij
 /// i.p.v. per hele sessie. Heeft geen effect als `workSeconds == 0`: delta
 /// verschuift een al-getimede duur, het vindt geen timing uit het niets uit.
@@ -91,6 +93,37 @@ void _flattenGroup(
 }
 
 void _flattenExercise(
+  TrainingExercise exercise, {
+  required TrainingPath path,
+  required List<TrainingStepRepeat> repeats,
+  required int siblingIndex,
+  required int siblingCount,
+  required List<TrainingStep> into,
+}) {
+  final repeatCount = exercise.repeatCount < 1 ? 1 : exercise.repeatCount;
+  for (var iteration = 1; iteration <= repeatCount; iteration++) {
+    _flattenExerciseOnce(
+      exercise,
+      path: path,
+      repeats: repeatCount > 1
+          ? [
+              ...repeats,
+              TrainingStepRepeat(
+                groupId: exercise.id,
+                groupTitle: 'Round',
+                iteration: iteration,
+                repeatCount: repeatCount,
+              ),
+            ]
+          : repeats,
+      siblingIndex: siblingIndex,
+      siblingCount: siblingCount,
+      into: into,
+    );
+  }
+}
+
+void _flattenExerciseOnce(
   TrainingExercise exercise, {
   required TrainingPath path,
   required List<TrainingStepRepeat> repeats,

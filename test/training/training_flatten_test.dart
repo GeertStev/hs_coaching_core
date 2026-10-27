@@ -339,4 +339,150 @@ void main() {
       expect(steps.every((s) => s.siblingCount == 2), isTrue);
     });
   });
+
+  group(
+    'flattenTraining — herhaalde oefening (TrainingExercise.repeatCount)',
+    () {
+      test('rolt alle rijen van de oefening N keer na elkaar uit', () {
+        final training = Training(
+          children: [
+            TrainingNode.exercise(
+              exercise: TrainingExercise(
+                id: 'e1',
+                title: 'Sprint',
+                repeatCount: 3,
+                groups: const [
+                  TrainingExerciseGroup(
+                    id: 'g1',
+                    workSeconds: 30,
+                    restSeconds: 10,
+                  ),
+                  TrainingExerciseGroup(id: 'g2', workSeconds: 20),
+                ],
+              ),
+            ),
+          ],
+        );
+
+        final steps = flattenTraining(training);
+
+        // per ronde: werk g1, rust g1, werk g2
+        expect(steps, hasLength(9));
+        expect(steps.map((s) => s.groupIndex).toList(), [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+        ]);
+        expect(steps.map((s) => s.repeats.single.iteration).toList(), [
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+        ]);
+        expect(steps.first.repeats.single.groupId, 'e1');
+        expect(steps.first.repeats.single.groupTitle, 'Round');
+        expect(steps.first.repeats.single.repeatCount, 3);
+      });
+
+      test('repeatCount == 1 voegt geen herhalings-context toe', () {
+        final training = Training(children: [_exerciseNode('e1', 'Techniek')]);
+
+        expect(flattenTraining(training).single.repeats, isEmpty);
+      });
+
+      test('ongetimede oefening levert per ronde één stap op', () {
+        final training = Training(
+          children: [
+            TrainingNode.exercise(
+              exercise: TrainingExercise(
+                id: 'e1',
+                title: '50m',
+                repeatCount: 4,
+              ),
+            ),
+          ],
+        );
+
+        final steps = flattenTraining(training);
+
+        expect(steps, hasLength(4));
+        expect(steps.every((s) => !s.isTimed), isTrue);
+      });
+
+      test(
+        'binnen een herhalende groep komt de oefening-herhaling als binnenste '
+        'niveau en volgt deltaSeconds de oefening-ronde',
+        () {
+          final training = Training(
+            children: [
+              TrainingNode.group(
+                group: TrainingGroup(
+                  id: 'set',
+                  title: 'Set',
+                  repeatCount: 2,
+                  children: [
+                    TrainingNode.exercise(
+                      exercise: TrainingExercise(
+                        id: 'e1',
+                        title: 'Sprint',
+                        repeatCount: 2,
+                        groups: const [
+                          TrainingExerciseGroup(
+                            id: 'g1',
+                            workSeconds: 30,
+                            deltaSeconds: -5,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+
+          final steps = flattenTraining(training);
+
+          expect(steps, hasLength(4));
+          expect(
+            steps
+                .map((s) => s.repeats.map((r) => r.iteration).toList())
+                .toList(),
+            [
+              [1, 1],
+              [1, 2],
+              [2, 1],
+              [2, 2],
+            ],
+          );
+          expect(steps.map((s) => s.durationMillis).toList(), [
+            30000,
+            25000,
+            30000,
+            25000,
+          ]);
+        },
+      );
+
+      test('repeatCount overleeft een JSON-roundtrip en ontbreekt = 1', () {
+        final exercise = TrainingExercise(id: 'e1', title: 'X', repeatCount: 3);
+        expect(TrainingExercise.fromJson(exercise.toJson()).repeatCount, 3);
+        expect(
+          TrainingExercise.fromJson({'id': 'e1', 'title': 'X'}).repeatCount,
+          1,
+        );
+      });
+    },
+  );
 }
