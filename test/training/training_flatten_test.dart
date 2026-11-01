@@ -5,6 +5,7 @@ import 'package:hs_coaching_core/training/training_exercise_group.dart';
 import 'package:hs_coaching_core/training/training_flatten.dart';
 import 'package:hs_coaching_core/training/training_group.dart';
 import 'package:hs_coaching_core/training/training_node.dart';
+import 'package:hs_coaching_core/training/training_step.dart';
 import 'package:hs_coaching_core/training/training_step_phase.dart';
 
 TrainingNode _exerciseNode(
@@ -28,37 +29,15 @@ void main() {
       expect(steps.single.exerciseTitle, 'Techniek');
     });
 
-    test(
-      'rij met workSeconds == restSeconds == 0 levert precies één '
-      'ongetimede stap op, geen aparte rust-stap',
-      () {
-        final training = Training(
-          children: [
-            _exerciseNode(
-              'e1',
-              '4x50m crawl',
-              groups: const [
-                TrainingExerciseGroup(id: 'g1', workSeconds: 0, restSeconds: 0),
-              ],
-            ),
-          ],
-        );
-
-        final steps = flattenTraining(training);
-
-        expect(steps, hasLength(1));
-        expect(steps.single.isTimed, isFalse);
-      },
-    );
-
-    test('workSeconds > 0 zonder restSeconds levert alleen een werk-stap op', () {
+    test('rij met workSeconds == restSeconds == 0 levert precies één '
+        'ongetimede stap op, geen aparte rust-stap', () {
       final training = Training(
         children: [
           _exerciseNode(
             'e1',
-            'Sprint',
+            '4x50m crawl',
             groups: const [
-              TrainingExerciseGroup(id: 'g1', workSeconds: 30, restSeconds: 0),
+              TrainingExerciseGroup(id: 'g1', workSeconds: 0, restSeconds: 0),
             ],
           ),
         ],
@@ -67,10 +46,36 @@ void main() {
       final steps = flattenTraining(training);
 
       expect(steps, hasLength(1));
-      expect(steps.single.isTimed, isTrue);
-      expect(steps.single.durationMillis, 30000);
-      expect(steps.single.phase, TrainingStepPhase.work);
+      expect(steps.single.isTimed, isFalse);
     });
+
+    test(
+      'workSeconds > 0 zonder restSeconds levert alleen een werk-stap op',
+      () {
+        final training = Training(
+          children: [
+            _exerciseNode(
+              'e1',
+              'Sprint',
+              groups: const [
+                TrainingExerciseGroup(
+                  id: 'g1',
+                  workSeconds: 30,
+                  restSeconds: 0,
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final steps = flattenTraining(training);
+
+        expect(steps, hasLength(1));
+        expect(steps.single.isTimed, isTrue);
+        expect(steps.single.durationMillis, 30000);
+        expect(steps.single.phase, TrainingStepPhase.work);
+      },
+    );
 
     test('workSeconds > 0 én restSeconds > 0 levert werk + rust op', () {
       final training = Training(
@@ -96,7 +101,7 @@ void main() {
   });
 
   group('flattenTraining — meerdere timing-rijen per oefening', () {
-    test('elke rij levert een eigen groupIndex op', () {
+    test('twee rijen lopen tegelijk: één stap, zo lang als de langste', () {
       final training = Training(
         children: [
           _exerciseNode(
@@ -112,11 +117,81 @@ void main() {
 
       final steps = flattenTraining(training);
 
-      expect(steps, hasLength(2));
-      expect(steps[0].groupIndex, 0);
-      expect(steps[0].isTimed, isTrue);
-      expect(steps[1].groupIndex, 1);
-      expect(steps[1].isTimed, isFalse);
+      expect(steps, hasLength(1));
+      expect(steps.single.isGroupSplit, isTrue);
+      expect(steps.single.parallelGroups, hasLength(2));
+      // g2 is ongetimed; de getimede g1 (15 s werk) bepaalt de duur.
+      expect(steps.single.durationMillis, 15000);
+      expect(steps.single.parallelGroups[1].workMillis, isNull);
+    });
+
+    test('Hard 15/10 en Easy 10/10: stap van 25 s, Easy rust langer', () {
+      final training = Training(
+        children: [
+          _exerciseNode(
+            'gs',
+            'Group split',
+            groups: const [
+              TrainingExerciseGroup(
+                id: 'hard',
+                name: 'Hard',
+                workSeconds: 15,
+                restSeconds: 10,
+              ),
+              TrainingExerciseGroup(
+                id: 'easy',
+                name: 'Easy',
+                workSeconds: 10,
+                restSeconds: 10,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final step = flattenTraining(training).single;
+      expect(step.durationMillis, 25000);
+
+      final at12 = parallelGroupStatesAt(step, 12000);
+      expect(at12.map((s) => s.phase), [
+        TrainingStepPhase.work,
+        TrainingStepPhase.rest,
+      ]);
+      expect(at12.map((s) => s.remainingMillis), [3000, 13000]);
+
+      final at20 = parallelGroupStatesAt(step, 20000);
+      expect(at20.map((s) => s.phase), [
+        TrainingStepPhase.rest,
+        TrainingStepPhase.rest,
+      ]);
+      expect(at20.map((s) => s.remainingMillis), [5000, 5000]);
+    });
+
+    test('group split met delta: per herhaling per rij', () {
+      final training = Training(
+        children: [
+          TrainingNode.exercise(
+            exercise: TrainingExercise(
+              id: 'gs',
+              title: 'Split',
+              repeatCount: 2,
+              groups: const [
+                TrainingExerciseGroup(
+                  id: 'a',
+                  workSeconds: 10,
+                  restSeconds: 5,
+                  deltaSeconds: 5,
+                ),
+                TrainingExerciseGroup(id: 'b', workSeconds: 10, restSeconds: 5),
+              ],
+            ),
+          ),
+        ],
+      );
+
+      final steps = flattenTraining(training);
+      expect(steps.map((s) => s.durationMillis), [15000, 20000]);
+      expect(steps[1].parallelGroups.map((g) => g.workMillis), [15000, 10000]);
     });
   });
 
@@ -134,7 +209,11 @@ void main() {
                   'e1',
                   'Kick',
                   groups: const [
-                    TrainingExerciseGroup(id: 'g1', workSeconds: 10, restSeconds: 0),
+                    TrainingExerciseGroup(
+                      id: 'g1',
+                      workSeconds: 10,
+                      restSeconds: 0,
+                    ),
                   ],
                 ),
               ],
@@ -172,42 +251,39 @@ void main() {
       expect(steps.single.repeats, isEmpty);
     });
 
-    test(
-      'deltaSeconds verschuift workSeconds per iteratie van de dichtstbije '
-      'herhalende groep, geklemd op minimaal 1 seconde',
-      () {
-        final training = Training(
-          children: [
-            TrainingNode.group(
-              group: TrainingGroup(
-                id: 'grp1',
-                repeatCount: 3,
-                children: [
-                  _exerciseNode(
-                    'e1',
-                    'Progressief sneller',
-                    groups: const [
-                      TrainingExerciseGroup(
-                        id: 'g1',
-                        workSeconds: 30,
-                        deltaSeconds: -10,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    test('deltaSeconds verschuift workSeconds per iteratie van de dichtstbije '
+        'herhalende groep, geklemd op minimaal 1 seconde', () {
+      final training = Training(
+        children: [
+          TrainingNode.group(
+            group: TrainingGroup(
+              id: 'grp1',
+              repeatCount: 3,
+              children: [
+                _exerciseNode(
+                  'e1',
+                  'Progressief sneller',
+                  groups: const [
+                    TrainingExerciseGroup(
+                      id: 'g1',
+                      workSeconds: 30,
+                      deltaSeconds: -10,
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        );
+          ),
+        ],
+      );
 
-        final steps = flattenTraining(training);
+      final steps = flattenTraining(training);
 
-        expect(steps, hasLength(3));
-        expect(steps[0].durationMillis, 30000); // iteratie 1: geen delta
-        expect(steps[1].durationMillis, 20000); // iteratie 2: -10s
-        expect(steps[2].durationMillis, 10000); // iteratie 3: -20s
-      },
-    );
+      expect(steps, hasLength(3));
+      expect(steps[0].durationMillis, 30000); // iteratie 1: geen delta
+      expect(steps[1].durationMillis, 20000); // iteratie 2: -10s
+      expect(steps[2].durationMillis, 10000); // iteratie 3: -20s
+    });
 
     test('deltaSeconds heeft geen effect op een ongetimede rij', () {
       final training = Training(
@@ -241,54 +317,51 @@ void main() {
       expect(steps[1].isTimed, isFalse);
     });
 
-    test(
-      'geneste herhalende groepen: repeats bevat beide niveaus, van buiten '
-      'naar binnen; delta volgt alleen de dichtstbije (binnenste)',
-      () {
-        final training = Training(
-          children: [
-            TrainingNode.group(
-              group: TrainingGroup(
-                id: 'outer',
-                repeatCount: 2,
-                children: [
-                  TrainingNode.group(
-                    group: TrainingGroup(
-                      id: 'inner',
-                      repeatCount: 2,
-                      children: [
-                        _exerciseNode(
-                          'e1',
-                          'Diep genest',
-                          groups: const [
-                            TrainingExerciseGroup(
-                              id: 'g1',
-                              workSeconds: 10,
-                              deltaSeconds: 5,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+    test('geneste herhalende groepen: repeats bevat beide niveaus, van buiten '
+        'naar binnen; delta volgt alleen de dichtstbije (binnenste)', () {
+      final training = Training(
+        children: [
+          TrainingNode.group(
+            group: TrainingGroup(
+              id: 'outer',
+              repeatCount: 2,
+              children: [
+                TrainingNode.group(
+                  group: TrainingGroup(
+                    id: 'inner',
+                    repeatCount: 2,
+                    children: [
+                      _exerciseNode(
+                        'e1',
+                        'Diep genest',
+                        groups: const [
+                          TrainingExerciseGroup(
+                            id: 'g1',
+                            workSeconds: 10,
+                            deltaSeconds: 5,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        );
+          ),
+        ],
+      );
 
-        final steps = flattenTraining(training);
+      final steps = flattenTraining(training);
 
-        expect(steps, hasLength(4));
-        expect(steps[0].repeats.map((r) => r.groupId), ['outer', 'inner']);
-        // outer=1,inner=1 -> 10s; outer=1,inner=2 -> 15s;
-        // outer=2,inner=1 -> 10s; outer=2,inner=2 -> 15s
-        expect(steps[0].durationMillis, 10000);
-        expect(steps[1].durationMillis, 15000);
-        expect(steps[2].durationMillis, 10000);
-        expect(steps[3].durationMillis, 15000);
-      },
-    );
+      expect(steps, hasLength(4));
+      expect(steps[0].repeats.map((r) => r.groupId), ['outer', 'inner']);
+      // outer=1,inner=1 -> 10s; outer=1,inner=2 -> 15s;
+      // outer=2,inner=1 -> 10s; outer=2,inner=2 -> 15s
+      expect(steps[0].durationMillis, 10000);
+      expect(steps[1].durationMillis, 15000);
+      expect(steps[2].durationMillis, 10000);
+      expect(steps[3].durationMillis, 15000);
+    });
   });
 
   group('flattenTraining — herhalingen en stapnummers', () {
@@ -366,28 +439,12 @@ void main() {
 
         final steps = flattenTraining(training);
 
-        // per ronde: werk g1, rust g1, werk g2
-        expect(steps, hasLength(9));
-        expect(steps.map((s) => s.groupIndex).toList(), [
-          0,
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          0,
-          1,
-        ]);
+        // per ronde één group split-stap (g1 en g2 tegelijk)
+        expect(steps, hasLength(3));
+        expect(steps.every((s) => s.isGroupSplit), isTrue);
         expect(steps.map((s) => s.repeats.single.iteration).toList(), [
           1,
-          1,
-          1,
           2,
-          2,
-          2,
-          3,
-          3,
           3,
         ]);
         expect(steps.first.repeats.single.groupId, 'e1');
