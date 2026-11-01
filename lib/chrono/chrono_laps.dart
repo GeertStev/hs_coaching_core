@@ -105,6 +105,20 @@ bool isLapAccepted(Chrono chrono, int? lane, int elapsedMillis) {
   );
 }
 
+/// Of alle tijden binnen zijn met `maxLaps`: elke baan (en de Lap-knop) die
+/// al een tijd heeft, heeft zijn finale tijd. Dan stopt de app de chrono.
+/// Banen zonder enige tijd zwemmen niet mee en tellen niet. Zonder maximum
+/// of zonder tijden: false.
+bool isChronoFinished(Chrono chrono) {
+  final maxLaps = chrono.maxLaps;
+  if (maxLaps == null || chrono.lapTimes.isEmpty) return false;
+  final counts = <int?, int>{};
+  for (final lap in chrono.lapTimes) {
+    counts[lap.lane] = (counts[lap.lane] ?? 0) + 1;
+  }
+  return counts.values.every((count) => count >= maxLaps);
+}
+
 /// Label voor een rij, zelfde in app en scherm. Zonder maximum: "Lap 2",
 /// "Lane 3", "Lane 3 · Lap 2". Met maximum 4: "Lap 2/4", "Lane 3 · 2/4",
 /// en "Final" / "Lane 3 · Final" voor de laatste.

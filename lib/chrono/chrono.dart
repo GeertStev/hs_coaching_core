@@ -28,7 +28,9 @@ abstract class Chrono with _$Chrono {
 
     /// Maximum aantal laps per baan (en voor de Lap-knop), ingesteld door de
     /// coach. De laatste is de finale tijd, de andere zijn tussentijden;
-    /// verdere drukken op die baan tellen niet. Null = geen maximum.
+    /// verdere drukken op die baan tellen niet. Zodra elke baan met tijden
+    /// zijn finale heeft, pauzeert de app de chrono op de laatste tijd (zie
+    /// `isChronoFinished`). Null = geen maximum.
     int? maxLaps,
   }) = _Chrono;
 
