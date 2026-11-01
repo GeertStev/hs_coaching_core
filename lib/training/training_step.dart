@@ -43,6 +43,7 @@ class TrainingStep {
     required this.repeats,
     required this.siblingIndex,
     required this.siblingCount,
+    this.parallelGroups = const [],
   });
 
   final TrainingPath path;
@@ -73,5 +74,74 @@ class TrainingStep {
   /// Aantal kinderen (oefeningen + subgroepen) van die ouder.
   final int siblingCount;
 
+  /// Gevuld zodra de oefening twee of meer timing-rijen heeft (een "group
+  /// split", bv. Hard/Easy): die rijen lopen **tegelijk**, elk met een eigen
+  /// werk/rust, en de stap duurt zo lang als de langste rij (werk + rust).
+  /// Zo'n stap is dan altijd [TrainingStepPhase.work] met [groupName] leeg
+  /// en [parameterRows] leeg — de fase en resterende tijd per rij volgen uit
+  /// [parallelGroupStatesAt]. Leeg voor een gewone oefening met één rij.
+  final List<TrainingParallelGroup> parallelGroups;
+
   bool get isTimed => durationMillis != null;
+  bool get isGroupSplit => parallelGroups.isNotEmpty;
+}
+
+/// Eén rij van een group split-stap, zie [TrainingStep.parallelGroups].
+class TrainingParallelGroup {
+  const TrainingParallelGroup({
+    required this.name,
+    required this.parameterRows,
+    required this.workMillis,
+    required this.restMillis,
+  });
+
+  final String name;
+  final List<TrainingParameterRow> parameterRows;
+
+  /// Werktijd in deze herhaling (delta al toegepast); `null` = ongetimed.
+  final int? workMillis;
+  final int restMillis;
+}
+
+/// Fase en resterende tijd van één [TrainingParallelGroup] op een moment.
+class TrainingParallelGroupState {
+  const TrainingParallelGroupState({
+    required this.phase,
+    required this.remainingMillis,
+  });
+
+  final TrainingStepPhase phase;
+
+  /// `null` = ongetimed (de rij wacht op de coach).
+  final int? remainingMillis;
+}
+
+/// Leidt per rij van een group split-stap de fase af uit de verstreken tijd
+/// binnen de stap: eerst werk, daarna rust tot de stap om is. Een kortere
+/// rij rust dus langer dan haar eigen rusttijd, tot de langste rij klaar is.
+List<TrainingParallelGroupState> parallelGroupStatesAt(
+  TrainingStep step,
+  int elapsedInStepMillis,
+) {
+  final stepDuration = step.durationMillis;
+  return [
+    for (final group in step.parallelGroups)
+      if (group.workMillis == null || stepDuration == null)
+        const TrainingParallelGroupState(
+          phase: TrainingStepPhase.work,
+          remainingMillis: null,
+        )
+      else if (elapsedInStepMillis < group.workMillis!)
+        TrainingParallelGroupState(
+          phase: TrainingStepPhase.work,
+          remainingMillis: group.workMillis! - elapsedInStepMillis,
+        )
+      else
+        TrainingParallelGroupState(
+          phase: TrainingStepPhase.rest,
+          remainingMillis: stepDuration - elapsedInStepMillis < 0
+              ? 0
+              : stepDuration - elapsedInStepMillis,
+        ),
+  ];
 }

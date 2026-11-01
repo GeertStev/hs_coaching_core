@@ -46,6 +46,10 @@ Reset); nothing needs the tablet awake for timed steps to advance. RTDB is used 
 (`serverConnectionProvider`).
 
 For tree-shaped timing, "flatten to a timeline, then scan" (see `training_flatten.dart`).
+An exercise with two timing groups is a **group split**: the groups run at the same time as one step
+lasting as long as the longest group (`TrainingStep.parallelGroups`, `parallelGroupStatesAt`). The
+pool screen's coarser view (one step = one repetition of one exercise, breadcrumb levels, transitions,
+lengths) lives in `lib/training/display/` on top of that timeline; it never changes `currentStepIndex`.
 
 ## Riverpod 3
 - Hand-written providers only; no `@riverpod` codegen.
