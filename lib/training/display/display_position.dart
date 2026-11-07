@@ -1,3 +1,4 @@
+import 'package:hs_coaching_core/training/display/display_progress.dart';
 import 'package:hs_coaching_core/training/display/display_step.dart';
 import 'package:hs_coaching_core/training/display/display_timeline.dart';
 import 'package:hs_coaching_core/training/display/display_transition.dart';
@@ -32,6 +33,9 @@ class TrainingDisplayPosition {
     required this.timers,
     required this.lengthsDone,
     required this.lengthsTotal,
+    this.nextExercise,
+    this.isLastRepetition = false,
+    this.progressBar = const [],
   });
 
   final TrainingStatus status;
@@ -50,6 +54,17 @@ class TrainingDisplayPosition {
   /// Banen vóór het begin van de huidige stap (geen voortgang binnen een stap).
   final int lengthsDone;
   final int lengthsTotal;
+
+  /// De eerste stap van de volgende oefening (de herhalingen van de huidige
+  /// oefening overgeslagen); vóór de start de eerste stap, `null` na de
+  /// laatste oefening.
+  final DisplayStep? nextExercise;
+
+  /// De huidige stap is de laatste herhaling van zijn oefening.
+  final bool isLastRepetition;
+
+  /// Voortgangsbalk (set › subset › oefening, niet uitgerold).
+  final List<ProgressItem> progressBar;
 
   bool get isBeforeStart => displayIndex < 0;
   bool get isFinished => current == null && !isBeforeStart;
@@ -73,6 +88,8 @@ TrainingDisplayPosition displayPositionAt(
       timers: const [],
       lengthsDone: 0,
       lengthsTotal: total,
+      nextExercise: steps.isEmpty ? null : steps.first,
+      progressBar: buildProgressBar(timeline.nodes, -1),
     );
   }
 
@@ -89,12 +106,15 @@ TrainingDisplayPosition displayPositionAt(
       timers: const [],
       lengthsDone: total,
       lengthsTotal: total,
+      progressBar: buildProgressBar(timeline.nodes, steps.length),
     );
   }
 
   final index = timeline.displayIndexByStep[progress.stepIndex];
   final current = steps[index];
   final next = index + 1 < steps.length ? steps[index + 1] : null;
+  final repetition = current.path.repetition;
+  final nextExerciseIndex = index + repetition.count - repetition.index;
 
   return TrainingDisplayPosition(
     status: progress.status,
@@ -105,6 +125,11 @@ TrainingDisplayPosition displayPositionAt(
     timers: _timers(step, progress),
     lengthsDone: timeline.lengthsBefore(index),
     lengthsTotal: total,
+    nextExercise: nextExerciseIndex < steps.length
+        ? steps[nextExerciseIndex]
+        : null,
+    isLastRepetition: repetition.index == repetition.count - 1,
+    progressBar: buildProgressBar(timeline.nodes, index),
   );
 }
 
