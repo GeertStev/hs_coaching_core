@@ -10,7 +10,7 @@ import 'package:hs_coaching_core/training/training_node.dart';
 /// De weergavestappen van een training plus de koppeling vanuit de fijnere
 /// `flattenTraining`-tijdlijn (waar `Training.currentStepIndex` in wijst).
 class TrainingDisplayTimeline {
-  TrainingDisplayTimeline(this.steps)
+  TrainingDisplayTimeline(this.steps, {this.nodes = const []})
     : displayIndexByStep = [
         for (var i = 0; i < steps.length; i++)
           for (var k = 0; k < steps[i].stepCount; k++) i,
@@ -18,6 +18,9 @@ class TrainingDisplayTimeline {
       _lengthsBefore = _cumulativeLengths(steps);
 
   final List<DisplayStep> steps;
+
+  /// De boom waaruit [steps] gebouwd is (voor de voortgangsbalk).
+  final List<TrainingNode> nodes;
 
   /// Per index in `flattenTraining`: de index van de weergavestap.
   final List<int> displayIndexByStep;
@@ -52,7 +55,7 @@ TrainingDisplayTimeline buildDisplayTimeline(Training training) {
     subset: null,
     nearestIteration: 1,
   );
-  return TrainingDisplayTimeline(builder.steps);
+  return TrainingDisplayTimeline(builder.steps, nodes: training.children);
 }
 
 class _Builder {
