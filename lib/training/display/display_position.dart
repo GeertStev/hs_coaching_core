@@ -68,8 +68,9 @@ class TrainingDisplayPosition {
   /// op de huidige oefening (zie [focusOnCurrent]). Vóór de start op de
   /// eerste oefening; tijdens de laatste herhaling verspringt hij naar de
   /// volgende oefening zodra die rust begint, of — zonder rust —
-  /// [kFocusSwitchBeforeEndMillis] voor het einde. Na de laatste oefening
-  /// blijft hij op de huidige.
+  /// [kFocusSwitchBeforeEndMillis] voor het einde. Wacht de huidige stap op
+  /// de coach ([isWaitingForCoach]), dan staat hij meteen op de volgende,
+  /// zoals vóór de start. Na de laatste oefening blijft hij op de huidige.
   final bool focusOnNext;
 
   /// Voortgangsbalk (set › subset › oefening, niet uitgerold).
@@ -78,6 +79,13 @@ class TrainingDisplayPosition {
   /// De huidige oefening heeft de focus (er is een huidige oefening en de
   /// focus staat niet op de volgende).
   bool get focusOnCurrent => current != null && !focusOnNext;
+
+  /// De huidige stap is ongetimed (bij een group split: alle groepen): hij
+  /// loopt pas verder als de coach op Next drukt.
+  bool get isWaitingForCoach =>
+      current != null &&
+      timers.isNotEmpty &&
+      timers.every((timer) => timer.remainingSeconds == null);
 
   bool get isBeforeStart => displayIndex < 0;
   bool get isFinished => current == null && !isBeforeStart;
@@ -135,6 +143,8 @@ TrainingDisplayPosition displayPositionAt(
   final nextExerciseIndex = index + repetition.count - repetition.index;
   final isLastRepetition = repetition.index == repetition.count - 1;
   final hasNextExercise = nextExerciseIndex < steps.length;
+  final timers = _timers(step, progress);
+  final waiting = timers.every((timer) => timer.remainingSeconds == null);
 
   return TrainingDisplayPosition(
     status: progress.status,
@@ -142,15 +152,14 @@ TrainingDisplayPosition displayPositionAt(
     current: current,
     next: next,
     transition: transitionBetween(current, next),
-    timers: _timers(step, progress),
+    timers: timers,
     lengthsDone: timeline.lengthsBefore(index),
     lengthsTotal: total,
     nextExercise: hasNextExercise ? steps[nextExerciseIndex] : null,
     isLastRepetition: isLastRepetition,
     focusOnNext:
-        isLastRepetition &&
         hasNextExercise &&
-        _nearEnd(current, step, progress),
+        (waiting || (isLastRepetition && _nearEnd(current, step, progress))),
     progressBar: buildProgressBar(timeline.nodes, index),
   );
 }
@@ -185,8 +194,8 @@ List<DisplayGroupTimer> _timers(
 
 /// Of [step] (fase-niveau, binnen weergavestap [current]) zo ver is dat de focus naar de volgende oefening
 /// mag: in de rust, of — als de oefening geen rust heeft — de laatste
-/// [kFocusSwitchBeforeEndMillis]. Een ongetimede stap wacht op de coach en
-/// houdt de focus.
+/// [kFocusSwitchBeforeEndMillis]. Een ongetimede stap valt hier buiten (zie
+/// `TrainingDisplayPosition.isWaitingForCoach`).
 bool _nearEnd(
   DisplayStep current,
   TrainingStep step,
