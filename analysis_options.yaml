@@ -1,8 +1,14 @@
 include: package:flutter_lints/flutter.yaml
 
+# Riverpod-lints via het nieuwe analyzer-pluginsysteem (Dart 3.10+).
+plugins:
+  riverpod_lint: ^3.1.0
+
 analyzer:
   errors:
     invalid_annotation_target: ignore
+  exclude:
+    - build/**
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
