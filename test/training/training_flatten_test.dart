@@ -100,6 +100,65 @@ void main() {
     });
   });
 
+  group('flattenTraining — oefening met enkel rust', () {
+    test('workSeconds == 0 en restSeconds > 0 levert enkel een getimede '
+        'rust-stap op (loopt vanzelf af)', () {
+      final training = Training(
+        children: [
+          _exerciseNode(
+            'e1',
+            'Rust',
+            groups: const [
+              TrainingExerciseGroup(id: 'g1', workSeconds: 0, restSeconds: 30),
+            ],
+          ),
+        ],
+      );
+
+      final steps = flattenTraining(training);
+
+      expect(steps, hasLength(1));
+      expect(steps.single.phase, TrainingStepPhase.rest);
+      expect(steps.single.durationMillis, 30000);
+      expect(
+        stepCountPerRepetition(
+          const TrainingExercise(
+            id: 'e1',
+            title: 'Rust',
+            groups: [
+              TrainingExerciseGroup(id: 'g1', workSeconds: 0, restSeconds: 30),
+            ],
+          ),
+        ),
+        1,
+      );
+    });
+
+    test('group split: een rij met enkel rust rust meteen', () {
+      final training = Training(
+        children: [
+          _exerciseNode(
+            'e1',
+            'Split',
+            groups: const [
+              TrainingExerciseGroup(id: 'g1', workSeconds: 0, restSeconds: 20),
+              TrainingExerciseGroup(id: 'g2', workSeconds: 10, restSeconds: 5),
+            ],
+          ),
+        ],
+      );
+
+      final step = flattenTraining(training).single;
+
+      expect(step.durationMillis, 20000);
+      expect(step.parallelGroups[0].workMillis, 0);
+      expect(parallelGroupStatesAt(step, 0).map((s) => s.phase), [
+        TrainingStepPhase.rest,
+        TrainingStepPhase.work,
+      ]);
+    });
+  });
+
   group('flattenTraining — meerdere timing-rijen per oefening', () {
     test('twee rijen lopen tegelijk: één stap, zo lang als de langste', () {
       final training = Training(

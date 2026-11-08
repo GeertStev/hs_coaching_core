@@ -21,8 +21,11 @@ import 'package:hs_coaching_core/training/training_step_phase.dart';
 /// lopen die tegelijk: één stap per herhaling, zo lang als de langste rij
 /// (werk + rust), met de rijen in `TrainingStep.parallelGroups`.
 ///
-/// Een enkele rij levert altijd een werk-stap op (getimed als `workSeconds > 0`,
-/// anders ongetimed) en alleen een rust-stap als `restSeconds > 0` — een rij
+/// Een enkele rij levert een werk-stap op (getimed als `workSeconds > 0`,
+/// anders ongetimed) en een rust-stap als `restSeconds > 0`. Een rij met
+/// enkel rust (`workSeconds == 0`, `restSeconds > 0`, bv. rust tussen twee
+/// sets) levert alleen de rust-stap op: die loopt vanzelf af, de coach hoeft
+/// dus niet eerst een ongetimede werk-stap weg te tikken. Een rij
 /// zonder enige timing (workSeconds == restSeconds == 0, het normale "pure
 /// reps/afstand"-geval) levert dus precies één ongetimede stap op, niet
 /// twee, zodat de coach niet twee keer hoeft te tikken voor iets zonder
@@ -157,8 +160,9 @@ void _flattenExerciseOnce(
 
   final nearestIteration = repeats.isEmpty ? 1 : repeats.last.iteration;
 
+  // `null` = ongetimed; 0 = enkel rust (de rij rust meteen).
   int? workMillisFor(TrainingExerciseGroup row) {
-    if (row.workSeconds <= 0) return null;
+    if (row.workSeconds <= 0) return row.restSeconds > 0 ? 0 : null;
     final deltaMillis = row.deltaSeconds * 1000 * (nearestIteration - 1);
     return math.max(row.workSeconds * 1000 + deltaMillis, 1000);
   }
@@ -204,21 +208,23 @@ void _flattenExerciseOnce(
   }
 
   final row = exercise.groups.single;
-  into.add(
-    TrainingStep(
-      path: path,
-      groupIndex: 0,
-      phase: TrainingStepPhase.work,
-      durationMillis: workMillisFor(row),
-      exerciseId: exercise.id,
-      exerciseTitle: exercise.title,
-      groupName: row.name,
-      parameterRows: row.parameterRows,
-      repeats: repeats,
-      siblingIndex: siblingIndex,
-      siblingCount: siblingCount,
-    ),
-  );
+  if (_hasWorkStep(row)) {
+    into.add(
+      TrainingStep(
+        path: path,
+        groupIndex: 0,
+        phase: TrainingStepPhase.work,
+        durationMillis: workMillisFor(row),
+        exerciseId: exercise.id,
+        exerciseTitle: exercise.title,
+        groupName: row.name,
+        parameterRows: row.parameterRows,
+        repeats: repeats,
+        siblingIndex: siblingIndex,
+        siblingCount: siblingCount,
+      ),
+    );
+  }
 
   if (row.restSeconds > 0) {
     into.add(
@@ -239,11 +245,16 @@ void _flattenExerciseOnce(
   }
 }
 
+/// Of een enkele rij een werk-stap oplevert: altijd, behalve bij enkel rust.
+bool _hasWorkStep(TrainingExerciseGroup row) =>
+    row.workSeconds > 0 || row.restSeconds <= 0;
+
 /// Aantal stappen dat [flattenTraining] voor één herhaling van [exercise]
-/// oplevert: 1 zonder rijen of bij een group split, anders werk (+ rust).
-/// Gebruikt door de weergavelaag (`display/display_steps.dart`) om stappen
-/// aan een herhaling te koppelen.
+/// oplevert: 1 zonder rijen of bij een group split, anders werk (+ rust),
+/// of enkel rust. Gebruikt door de weergavelaag (`display/display_steps.dart`)
+/// om stappen aan een herhaling te koppelen.
 int stepCountPerRepetition(TrainingExercise exercise) {
   if (exercise.groups.length != 1) return 1;
-  return exercise.groups.single.restSeconds > 0 ? 2 : 1;
+  final row = exercise.groups.single;
+  return (_hasWorkStep(row) ? 1 : 0) + (row.restSeconds > 0 ? 1 : 0);
 }

@@ -35,6 +35,7 @@ class TrainingDisplayPosition {
     required this.lengthsTotal,
     this.nextExercise,
     this.isLastRepetition = false,
+    this.focusOnNext = false,
     this.progressBar = const [],
   });
 
@@ -63,12 +64,28 @@ class TrainingDisplayPosition {
   /// De huidige stap is de laatste herhaling van zijn oefening.
   final bool isLastRepetition;
 
+  /// Waar de focus (oranje kader) staat: `true` = op [nextExercise], anders
+  /// op de huidige oefening (zie [focusOnCurrent]). Vóór de start op de
+  /// eerste oefening; tijdens de laatste herhaling verspringt hij naar de
+  /// volgende oefening zodra die rust begint, of — zonder rust —
+  /// [kFocusSwitchBeforeEndMillis] voor het einde. Na de laatste oefening
+  /// blijft hij op de huidige.
+  final bool focusOnNext;
+
   /// Voortgangsbalk (set › subset › oefening, niet uitgerold).
   final List<ProgressItem> progressBar;
+
+  /// De huidige oefening heeft de focus (er is een huidige oefening en de
+  /// focus staat niet op de volgende).
+  bool get focusOnCurrent => current != null && !focusOnNext;
 
   bool get isBeforeStart => displayIndex < 0;
   bool get isFinished => current == null && !isBeforeStart;
 }
+
+/// Zonder rust verspringt de focus zoveel ms voor het einde van de laatste
+/// herhaling naar de volgende oefening.
+const int kFocusSwitchBeforeEndMillis = 5000;
 
 /// Vertaalt [progress] (fase-niveau) naar de weergave-positie in [timeline].
 TrainingDisplayPosition displayPositionAt(
@@ -89,6 +106,7 @@ TrainingDisplayPosition displayPositionAt(
       lengthsDone: 0,
       lengthsTotal: total,
       nextExercise: steps.isEmpty ? null : steps.first,
+      focusOnNext: steps.isNotEmpty,
       progressBar: buildProgressBar(timeline.nodes, -1),
     );
   }
@@ -115,6 +133,8 @@ TrainingDisplayPosition displayPositionAt(
   final next = index + 1 < steps.length ? steps[index + 1] : null;
   final repetition = current.path.repetition;
   final nextExerciseIndex = index + repetition.count - repetition.index;
+  final isLastRepetition = repetition.index == repetition.count - 1;
+  final hasNextExercise = nextExerciseIndex < steps.length;
 
   return TrainingDisplayPosition(
     status: progress.status,
@@ -125,10 +145,12 @@ TrainingDisplayPosition displayPositionAt(
     timers: _timers(step, progress),
     lengthsDone: timeline.lengthsBefore(index),
     lengthsTotal: total,
-    nextExercise: nextExerciseIndex < steps.length
-        ? steps[nextExerciseIndex]
-        : null,
-    isLastRepetition: repetition.index == repetition.count - 1,
+    nextExercise: hasNextExercise ? steps[nextExerciseIndex] : null,
+    isLastRepetition: isLastRepetition,
+    focusOnNext:
+        isLastRepetition &&
+        hasNextExercise &&
+        _nearEnd(current, step, progress),
     progressBar: buildProgressBar(timeline.nodes, index),
   );
 }
@@ -159,4 +181,35 @@ List<DisplayGroupTimer> _timers(
             : (state.remainingMillis! / 1000).ceil(),
       ),
   ];
+}
+
+/// Of [step] (fase-niveau, binnen weergavestap [current]) zo ver is dat de focus naar de volgende oefening
+/// mag: in de rust, of — als de oefening geen rust heeft — de laatste
+/// [kFocusSwitchBeforeEndMillis]. Een ongetimede stap wacht op de coach en
+/// houdt de focus.
+bool _nearEnd(
+  DisplayStep current,
+  TrainingStep step,
+  TrainingSessionProgress progress,
+) {
+  final remaining = progress.remaining?.inMilliseconds;
+  final duration = step.durationMillis;
+  if (remaining == null || duration == null) return false;
+
+  if (!step.isGroupSplit) {
+    if (step.phase == TrainingStepPhase.rest) return true;
+    // Werk-stap: heeft de oefening rust, dan wacht de focus op die rust.
+    final hasRest = current.groups.any((group) => group.restSeconds > 0);
+    return !hasRest && remaining <= kFocusSwitchBeforeEndMillis;
+  }
+
+  // Group split: rust zodra de laatst werkende groep klaar is.
+  var workEnd = 0;
+  for (final group in step.parallelGroups) {
+    final work = group.workMillis;
+    if (work != null && work > workEnd) workEnd = work;
+  }
+  final elapsed = duration - remaining;
+  if (workEnd < duration) return elapsed >= workEnd;
+  return remaining <= kFocusSwitchBeforeEndMillis;
 }

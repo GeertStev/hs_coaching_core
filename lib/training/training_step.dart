@@ -98,7 +98,8 @@ class TrainingParallelGroup {
   final String name;
   final List<TrainingParameterRow> parameterRows;
 
-  /// Werktijd in deze herhaling (delta al toegepast); `null` = ongetimed.
+  /// Werktijd in deze herhaling (delta al toegepast); `null` = ongetimed,
+  /// 0 = de rij heeft enkel rust.
   final int? workMillis;
   final int restMillis;
 }
