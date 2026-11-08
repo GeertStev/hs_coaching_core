@@ -77,16 +77,42 @@ void main() {
     expect(at(35).focusOnNext, isTrue); // nog 5 s
   });
 
-  test('ongetimede oefening houdt de focus', () {
+  test('ongetimede oefening wacht op de coach: focus op de volgende', () {
     final at = positionsOf(
       Training(
         children: [
-          exerciseNode('a', 'A', groups: [row()]),
+          exerciseNode('a', 'A', repeatCount: 2, groups: [row()]),
           exerciseNode('b', 'B', groups: [row(work: 10)]),
         ],
       ),
     );
-    expect(at(600).focusOnCurrent, isTrue);
+    expect(at(600).isWaitingForCoach, isTrue);
+    expect(at(600).focusOnNext, isTrue);
+    expect(at(600).nextExercise?.exerciseId, 'b');
+  });
+
+  test('getimede oefening wacht niet op de coach', () {
+    final at = positionsOf(
+      Training(
+        children: [
+          exerciseNode('a', 'A', groups: [row(work: 10)]),
+        ],
+      ),
+    );
+    expect(at(2).isWaitingForCoach, isFalse);
+    expect(at(0, status: TrainingStatus.idle).isWaitingForCoach, isFalse);
+  });
+
+  test('ongetimede laatste oefening: focus blijft op de huidige', () {
+    final at = positionsOf(
+      Training(
+        children: [
+          exerciseNode('a', 'A', groups: [row()]),
+        ],
+      ),
+    );
+    expect(at(5).isWaitingForCoach, isTrue);
+    expect(at(5).focusOnCurrent, isTrue);
   });
 
   test('oefening met enkel rust: focus meteen op de volgende', () {
