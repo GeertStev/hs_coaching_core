@@ -34,13 +34,13 @@ Schrijf geen code.
 Implementeer de match engine volgens docs/uwh/02-match-engine.md in hs_coaching_core, als pure Dart.
 
 Volgorde:
-1. Schrijf eerst ALLE acceptatietests T1–T17 (T18 hoort bij fase 2) uit §7 (ze falen), plus tests voor de validaties uit 01-regels-domein.md §2 en §4. Gebruik in elke testnaam het CMAS-regelnummer.
+1. Schrijf eerst alle acceptatietests uit §7 die pure engine-tests zijn: T1–T14, T16, T17 en T19–T22 (T15 en T18 horen bij fase 2) uit §7 (ze falen), plus tests voor de validaties uit 01-regels-domein.md §2 en §4. Gebruik in elke testnaam het CMAS-regelnummer.
 2. Werk daarna MatchConfig, de sealed MatchEvent-klassen (met JSON-serialisatie), MatchState en de reducer uit.
 3. ClockView: een pure functie (MatchState, int nowServerMs) -> resterende periodetijd, strafklokken, aftellingen voor time-out en goal-herstart, en de vlaggen periodExpired / stoppedClockMode.
 4. Een validator die een kandidaat-event weigert met een getypeerde reden (bv. TimeOutNotAllowed.playRunning), zodat de UI die reden kan tonen.
 5. De overtredingentabel 17.7.1 als assets/infringements_v13.json, met een functie suggestPenalty(state, team, cap, code, deliberate).
 
-Gebruik een fake clock in de tests; nergens DateTime.now() in de engine.
+Gebruik een fake clock in de tests; nergens DateTime.now() in de engine. Hardcode geen 15, 3, 2 of 5 minuten: alles komt uit MatchConfig (controleer dat met een grep). Er zijn geen wisselevents en geen assists (OPEN-4 en OPEN-7).
 Open punten: implementeer ze als een policy-enum met de default uit open-vragen.md en markeer ze met // OPEN-x.
 Stop als alle tests groen zijn, en geef me een overzicht van de beslissingen die je onderweg nam.
 ```
@@ -55,9 +55,10 @@ Implementeer een MatchRepository-interface in hs_coaching_core en een Firebase-i
 - append(event): transactie op meta/lastSeq; de eventtijd = lokale tik + serverTimeOffset (hergebruik de bestaande offset-logica, schrijf ze niet opnieuw).
 - watch(matchId): Stream<MatchState> (lokaal reduceren).
 - Offline wachtrij met behoud van de oorspronkelijke tijd van de tik.
+- Writer lease per wedstrijd (matches/{id}/lease): één tafeltoestel schrijft, overname vraagt bevestiging (02 §6a).
 - Security rules: rollen uit 03-wedstrijdtafel-ui.md §3, events append-only (geen update of delete).
 - Fields: max. één live wedstrijd per veld, via een transactie op fields/{fieldId}/liveMatchId.
-Voeg integratietests toe met de Firebase-emulator voor T15 (twee gelijktijdige writers) en T18 (veldconflict), plus een test met 3 gelijktijdige wedstrijden.
+Voeg integratietests toe met de Firebase-emulator voor T15 (lease: een tweede toestel wordt geweigerd, expliciete overname werkt) en T18 (veldconflict), plus een test met 3 gelijktijdige wedstrijden.
 ```
 
 ## Fase 3 – Wedstrijdtafel-UI (hs_coaching_app)
@@ -69,6 +70,7 @@ Bouw de wedstrijdtafel volgens docs/uwh/03-wedstrijdtafel-ui.md §1–§3, met d
 - Undo via EventVoided vanuit de eventlog.
 - Liggend formaat, wakelock, haptische en audio-hints.
 - Daarna de voorbereidings- en afsluitschermen, met export van het wedstrijdverslag als PDF.
+Bouw ook de invoer van de afstandsbediening volgens 03 §5: globale handler die de toetsen consumeert, toetsen leren, debounce, een remote-test op het voorbereidingsscherm. Unit tests op de mapping van toets naar event (ook herhaalde toetsen en 'geen wedstrijd live'). Het testen met de echte afstandsbediening doe ik zelf; zeg me waar ik moet letten.
 Widgettests voor: een goal registreren, een straf met kapnummer, een geweigerde time-out, undo.
 ```
 
@@ -88,6 +90,7 @@ Pas ook de Python-kioskcontroller aan: een ICS-item met de tag [UWH-MATCH:<id>] 
 Lees docs/uwh/04-toernooi.md. Maak eerst in plan mode een voorstel voor het datamodel en de schemagenerator, en wacht op mijn akkoord.
 Daarna: model + generator + klassement (met tests voor de tiebreakregels en voor forfaits), dan de UI.
 De match engine verandert niet. Het toernooi maakt matches aan met de juiste MatchConfig (requiresWinner), tournamentId en fieldId, en leest MatchState voor het klassement.
+Implementeer ook de configuratie per fase en de planner volgens 04 §1: presets, resolutie toernooi → fase → wedstrijd, de snapshot in MatchCreated, slotduur uit de config en de berekening 'past het in de beschikbare zwembadtijd?'. Schrijf tests voor de resolutie en de slotduur.
 Let in de schemagenerator op parallelle velden (04 §3): geen team en geen official op twee velden in hetzelfde slot. Schrijf daar property-based of tabelgedreven tests voor.
 Daarna in de console: veldbinding (03 §1), zodat de volgende wedstrijd op het veld automatisch geladen wordt.
 ```

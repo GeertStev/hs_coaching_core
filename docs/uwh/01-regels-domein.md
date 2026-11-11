@@ -13,7 +13,7 @@
 | Water Referees (2 of 3) | in het water | kunnen géén toestel bedienen; beslissingen worden door de tafel ingegeven |
 | Timekeeper/Scorer (1+ personen) – in België de **vierde scheidsrechter** | tafel naast CR | **primaire gebruiker van de wedstrijdtafel-UI**: wedstrijdklok, minstens 2 strafklokken tegelijk, score tonen en aankondigen, schriftelijk wedstrijdverslag |
 
-Gevolg: de "scheidsrechtermodule" is in de praktijk een **wedstrijdtafel-console**, bediend door de vierde scheidsrechter (één toestel per veld).
+Gevolg: de "scheidsrechtermodule" is in de praktijk een **wedstrijdtafel-console**, bediend door de vierde scheidsrechter (één toestel per veld). De hoofdscheidsrechter bedient de wedstrijdklok met een afstandsbediening die aan dat toestel gekoppeld is.
 
 ## 2. Teams en spelers (3.1–3.2)
 
@@ -46,6 +46,8 @@ Gevolg: de "scheidsrechtermodule" is in de praktijk een **wedstrijdtafel-console
 
 `requiresWinner` is dus een eigenschap van de wedstrijd (komt uit de toernooimodule: knock-out = true, poule = false).
 
+Alle duren in deze tabel zijn **CMAS-defaults**. Toernooien wijken regelmatig af (OPEN-5), dus alles loopt via `MatchConfig`.
+
 ### 3.2 Lopende klok vs. stilgezette klok
 
 - **Standaard loopt de klok door** bij onderbrekingen (15.3.3, 14.2.3).
@@ -56,7 +58,7 @@ Gevolg: de "scheidsrechtermodule" is in de praktijk een **wedstrijdtafel-console
 - Strafworp (penalty shot): **alle** klokken stil – wedstrijdklok én strafklokken; herstart bij het startsignaal na de strafworp (17.8.1, 17.8.7).
 - Een toegekende strafworp moet altijd gespeeld worden, ook als de wedstrijdtijd verstreken is (17.8.6).
 
-**[OPEN-1]** Geldt "laatste 2 minuten" ook voor periode 1 en overtime 1? Letterlijke lezing: nee.
+**[OPEN-1]** Geldt "laatste 2 minuten" ook voor periode 1 en overtime 1? Letterlijke lezing: nee (instelbaar via `stoppedClockPhases`).
 
 ### 3.3 Signalen en aftellingen
 
@@ -141,4 +143,4 @@ Een advantage puck vervalt als het team niet binnen 5 s in balbezit komt; daarna
 
 ## 11. Afmetingen (enkel voor tekeningen en scorebord)
 
-Speelveld 12–15 × 21–25 m (min. 300 m²), diepte 2–3,65 m; doelzone r = 3 m; strafworpzone r = 6 m; strafpunt op 3 m; hoeken r = 1 m. Wissels: drie methodes (dek-, in-water- of doellijnwissel), **één methode per toernooi** (15.2) → toernooi-instelling.
+Speelveld 12–15 × 21–25 m (min. 300 m²), diepte 2–3,65 m; doelzone r = 3 m; strafworpzone r = 6 m; strafpunt op 3 m; hoeken r = 1 m. Wissels: drie methodes (dek-, in-water- of doellijnwissel), **één methode per toernooi** (15.2) → toernooi-instelling. Voor deze app geldt dekwissel, en wissels worden **niet geregistreerd** (OPEN-4).

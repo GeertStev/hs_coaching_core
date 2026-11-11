@@ -16,6 +16,9 @@
 - Het tijdstip van een event is het moment van de **tik**, niet het uploadmoment (dus geen `ServerValue.timestamp` als eventtijd).
 - Elke klokregel heeft een unit test die naar het regelnummer verwijst (bv. `test('14.2.3.2 auto-stop op 2:00', …)`).
 - Meerdere wedstrijden lopen tegelijk (tot 3 velden): alles is per `matchId`, met **geen** singleton of globale "actieve wedstrijd" in providers of services.
+- Per wedstrijd is er één tafeltoestel met twee bedieners: de hoofdscheidsrechter bedient de tijd met een HID-afstandsbediening (`source: remote`, enkel start/stop en optioneel officials' time-out), de vierde scheidsrechter het scherm.
+- Wissels en assists worden **niet** geregistreerd: bouw er geen events, UI of statistieken voor.
+- Geen hardgecodeerde speelduren: alles komt uit `MatchConfig`, die per toernooifase en per wedstrijd kan verschillen en bij `MatchCreated` als snapshot bewaard wordt.
 - De overtredingentabel 17.7.1 is een **suggestie**, geen afdwinging.
 - Werk per fase volgens `docs/uwh/prompts.md`. Begin pas aan de UI als de engine-tests groen zijn.
 - Domeintermen in de code zijn Engels zoals in de CMAS-regels (penalty shot, advantage puck, …); de UI-teksten zijn Nederlands (via het bestaande i18n-mechanisme, als dat er is).

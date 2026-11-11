@@ -2,7 +2,7 @@
 
 ## 1. Context van de gebruiker
 
-- De gebruiker is de **vierde scheidsrechter** aan de tafel (rol `tableOfficial` = timekeeper/scorer uit 4.4). Eén toestel per veld.
+- **Twee bedieners, één toestel per veld.** De **hoofdscheidsrechter** (aan de kant) bedient de tijd met een afstandsbediening (§5). De **vierde scheidsrechter** (rol `tableOfficial` = scorer uit 4.4) bedient het scherm: goals, straffen, time-outs, correcties.
 - **Veldbinding**: bij het opstarten kiest de vierde scheidsrechter toernooi + **veld**. De console laadt dan automatisch de volgende geplande wedstrijd op dat veld (met bevestiging), zodat er niet per wedstrijd gezocht moet worden. Op een BK lopen tot 3 consoles tegelijk, elk op hun eigen veld.
 - Natte handen, lawaai, de blik op het water. Elke actie moet **één tik** zijn en meteen omkeerbaar (undo = `EventVoided`).
 - De klokknoppen zijn **groot** (min. 64 dp) en staan op een vaste plek; de scoreknoppen staan links/rechts volgens de **kant waarop het team speelt**. Na de rust wisselen ze van kant (14.2.2).
@@ -11,10 +11,10 @@
 
 ## 2. Schermen
 
-1. **Voorbereiding** – teams kiezen (wit/zwart), roster afvinken (max. 10, C/VC), officials invullen, config bevestigen (`requiresWinner` komt uit het toernooi).
+1. **Voorbereiding** – teams kiezen (wit/zwart), roster afvinken (max. 10, C/VC), officials invullen, de **effectieve configuratie** groot tonen en expliciet laten bevestigen (bv. "2 × 12 min, rust 2 min, overtime uit, 1 time-out per helft" plus `requiresWinner`), want die kan per toernooifase verschillen (04 §1). Hier staat ook de **test van de afstandsbediening** (§5).
 2. **Live console**
    - Boven: fase, grote klok, indicator "stopped-clock mode", score.
-   - Midden: `START` / `STOP` (met een snelle redenkeuze; standaard "overtreding"), knoppen `GOAL wit` / `GOAL zwart` (daarna een optioneel kapnummer via een nummerpad 1–15).
+   - Midden: `START` / `STOP` (back-up voor de afstandsbediening; de reden is niet nodig voor de klok en kan achteraf in de eventlog ingevuld worden), knoppen `GOAL wit` / `GOAL zwart` (daarna een optioneel kapnummer via een nummerpad 1–15).
    - Strafbalk per team: actieve strafklokken met kapnummer en resterende tijd. Een straf in de status `expiredWaiting` licht op ("vrijgeven na puckcontact"), en met een tik registreer je `PenaltyPlayerReturned`.
    - Knop `STRAF`: team → kapnummer → type (caution / 1 / 2 / 5 / uitsluiting) → overtreding (16.3.x, met de handsignaalnaam). De suggestie uit tabel 17.7.1 staat bovenaan, maar je kunt altijd iets anders kiezen.
    - Knoppen `TIME-OUT wit/zwart` (grijs als dat niet toegelaten is, met de reden bij een lange druk) en `OFFICIALS T/O`.
@@ -27,7 +27,7 @@
 | Rol | Mag |
 |---|---|
 | `tableOfficial` | alle events in een toegewezen wedstrijd |
-| `chiefReferee` | idem + sign-off |
+| `chiefReferee` | idem + sign-off, op het toestel van de tafel; de afstandsbediening is een invoermethode van dat toestel, geen aparte login |
 | `coach/speler` | enkel lezen |
 | `tournamentAdmin` | alles + forfait/staking + correcties na `final` (met audit) |
 
@@ -59,3 +59,16 @@ Alle schermen lezen alleen en gebruiken hetzelfde reduce-pad als de app (via hs_
 - Een veld zonder live wedstrijd toont "Volgende: A – B om 14:35 (verwacht 14:42)".
 - Een goal geeft kort een highlight op dat veld (2–3 s), zodat het publiek ziet waar er gescoord werd.
 - De klokken lopen per veld onafhankelijk; elke kolom berekent zijn eigen `ClockView`.
+
+## 5. Afstandsbediening van de hoofdscheidsrechter (HID)
+
+- De afstandsbediening is een Bluetooth-toetsenbord (HID). De koppeling gebeurt in het besturingssysteem; de app ziet alleen toetsen.
+- **Globale handler** (`HardwareKeyboard.instance.addHandler`) in plaats van focusgebaseerd. De toetsen die aan een actie toegewezen zijn, worden **geconsumeerd**, anders activeren Enter en Spatie een knop die toevallig focus heeft.
+- **Toetsen leren**: bij de voorbereiding druk je op "toewijzen" en daarna op de knop van de afstandsbediening. De mapping wordt per toestel bewaard:
+  - Eén toets: wisselknop. Loopt het spel, dan geeft ze `PlayStopped(unspecified)`; staat het stil, dan `PlayStarted(restartType)` met het type dat de tafel op het scherm voorgekozen heeft.
+  - Twee of meer toetsen: aparte start- en stoptoets, plus optioneel officials' time-out.
+- **Bescherming**: negeer toetsherhalingen en indrukken binnen 250 ms van de vorige; negeer alles als er geen wedstrijd `live` is of de console niet op de voorgrond staat; negeer tijdens `awaitingSignOff`. Elk event krijgt `source: remote`.
+- **Risico van de wisselknop**: een gemiste of dubbele indruk keert de toestand om. Daarom een grote indicator RUNNING (groen) / STOPPED (rood), trillen of een pieptoon bij elke aanvaarde indruk, een teller "laatste afstandsbediening: 12:03:41", en de START/STOP-knoppen op het scherm als back-up. Heeft de afstandsbediening twee knoppen, gebruik dan aparte start- en stoptoetsen.
+- **Tijdstip**: het officiële moment is de indruk (lokale tijd + serverTimeOffset). Bluetooth-vertraging van enkele tientallen ms is aanvaardbaar.
+- **Geluidssignaal**: het officiële signaal (15.1.8, 15.3.4) komt van het geluidssysteem van de hoofdscheidsrechter. De app maakt dat niet; het is alleen een hint aan de tafel (OPEN-9).
+- Schermvergrendeling of uitgeschakeld scherm blokkeert de toetsen: wakelock aan, en test met de echte afstandsbediening vóór je erop vertrouwt.

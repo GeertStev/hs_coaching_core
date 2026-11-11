@@ -8,10 +8,11 @@ Alles wordt **afgeleid** uit de event logs (wedstrijden) en de trainingsdata; er
 - Live score van de eigen wedstrijd.
 
 ## 2. Wedstrijdstatistieken (per wedstrijd / toernooi / seizoen)
-- Goals, assists (als die gelogd worden), goals uit strafworpen.
+- Goals (per speler enkel als de tafel het kapnummer invulde; goals zonder kapnummer tellen alleen voor het team) en goals uit strafworpen. Assists worden niet gelogd (OPEN-7).
 - Strafminuten per type, cautions, dismissals.
 - Deelname aan strafworpen (aanvaller/verdediger + uitkomst).
 - Team: goals per periode en per tijdsblok van 5 min, het resultaat bij een man meer of minder (berekend uit de overlap van strafklokken en goals).
+- **Niet mogelijk**: speeltijd per speler, plus/min en wisselpatronen, omdat wissels niet geregistreerd worden (OPEN-4). Bouw hier niets voor.
 
 ## 3. Trainingstiming
 - Voorwaarde: de training registreert **werkelijke** tijden per oefening of herhaling (niet alleen de geplande). Controleer of het huidige trainingsmodel dat kan; zo niet, stel dan eerst een uitbreiding voor.

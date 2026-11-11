@@ -4,14 +4,21 @@
 
 - `Tournament(id, name, dates, venue, substitutionMethod: deck|inWater|endLine, rulesVersion, matchConfigDefaults)` – één wisselmethode per toernooi (15.2).
 - `Division` → `Team` → `Squad` (max. 12, unieke kapnummers 1–15, één selectie per team, 3.1.1; vervanging enkel met een medisch attest, 3.1.3).
-- `Stage`: `roundRobin(groups)` | `knockout(bracket)` | `placement`.
+- `Stage`: `roundRobin(groups)` | `knockout(bracket)` | `placement`, met een eigen `matchConfig`, `changeoverBuffer` en klassementsregels (de poulefase en de finales mogen dus verschillen).
 - `Field` (bad of speelveld) + `TimeSlot`s.
-- `Match(tournamentId, stageId, fieldId, scheduledStart, white, black, officials, requiresWinner, status)` → koppelt aan de match engine via `matchId`.
+- `Match(tournamentId, stageId, fieldId, scheduledStart, white, black, officials, requiresWinner, `configOverride?`, status)` → koppelt aan de match engine via `matchId`.
 - Statussen: `scheduled → ready → live → awaitingSignOff → final` | `forfeited` | `abandoned`.
+
+### Configuratie en slotduur (OPEN-5)
+
+- **Effectieve config** = toernooi-standaard → `Stage.matchConfig` → `Match.configOverride`, waarbij het meest specifieke wint. Ze wordt als snapshot in `MatchCreated` gezet als de wedstrijd `ready` wordt; tot `live` mag de beheerder ze nog wijzigen, daarna is ze bevroren.
+- **Presets**: de beheerder maakt zelf presets (bv. "CMAS standaard 2×15"; eigen varianten zoals een kortere poulefase). De app levert enkel "CMAS standaard" mee en bedenkt geen Belgische formats.
+- **Slotduur wordt berekend** uit de config: periodes + rust + `changeoverBuffer` (tijd tussen twee wedstrijden op een veld). Bij `requiresWinner` kies je of de planning ruimte voor overtime meerekent (aanbevolen voor finales).
+- **Zwembadtijd-planner**: de beheerder geeft per veld de beschikbare tijd (bv. 08:30–18:00). De app rekent uit of het schema met de gekozen config past en toont de marge. Past het niet, dan toont ze wat wel past (bv. "met 2×12 min past het, met 2×15 min niet"). Dat is een berekening, geen automatische keuze.
 
 ## 2. Functies
 
-1. **Schemagenerator**: round-robin (circle method), met een minimum aantal rustslots per team tussen twee wedstrijden en een evenwichtige verdeling wit/zwart. Een slot = 33 min speeltijd + wisseltijd (configureerbaar).
+1. **Schemagenerator**: round-robin (circle method), met een minimum aantal rustslots per team tussen twee wedstrijden en een evenwichtige verdeling wit/zwart. Een slot = berekend uit de effectieve config van de fase + `changeoverBuffer` (zie hierboven).
 2. **Toewijzing van scheidsrechters**: geen official in een wedstrijd van zijn eigen team (of van een team uit dezelfde poule, optioneel), en een evenwichtige verdeling van de belasting.
 3. **Klassement** (configureerbaar): punten W/G/V (default 3/1/0), daarna doelsaldo, gescoorde goals en onderling resultaat. Een forfait krijgt een configureerbare score (bv. 0–5).
 4. **Knock-out**: de bracket vult zich automatisch uit het eindklassement van de poules; `requiresWinner=true`.
