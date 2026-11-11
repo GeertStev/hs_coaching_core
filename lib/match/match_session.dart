@@ -76,6 +76,11 @@ class MatchSession {
   /// server.
   MatchState get state => _state;
 
+  /// Alle events op volgorde van `seq`, ook de vernietigde en degene die nog
+  /// onderweg zijn naar de server. Voor het eventlog van de tafel.
+  List<MatchEvent> get events =>
+      [..._remote, ..._pending]..sort((a, b) => a.seq.compareTo(b.seq));
+
   /// Elke nieuwe toestand. Geeft niet de huidige bij het luisteren; lees
   /// daarvoor [state].
   Stream<MatchState> get states => _states.stream;
