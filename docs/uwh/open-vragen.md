@@ -15,6 +15,18 @@ Claude Code: **niet zelf invullen.** Open punten implementeer je als configureer
 | OPEN-7 | Assists loggen? | – | **Nee** | Geen assistveld, geen assiststatistiek |
 | OPEN-8 | Papieren wedstrijdblad nog verplicht naast de PDF? | 4.5.5 | Default aanvaard: de PDF-export bootst het papieren blad na | – |
 
+## Beslist tijdens fase 0 en 1 (antwoorden Geert, 2026-11-11)
+
+| Vraag | Beslissing | Gevolg voor de implementatie |
+|---|---|---|
+| Herstart de wedstrijdklok vanzelf na een team time-out van 1:00? | **Nee**, pas bij het startsignaal (`PlayStarted`) | De aftelling van de time-out stopt op 0:00; de klok blijft staan |
+| Loopt een straf door over de periodegrens? | **Ja**; ze pauzeert tijdens de rust en loopt daarna verder | Volgt uit `PenaltyClockPolicy.matchClockOnly` (OPEN-2) |
+| Mag de tafel een start of stop van de klok terugdraaien? | **Ja** | `EventVoided` kan elk event ongeldig maken behalve `MatchCreated` en een andere `EventVoided`; de klok verspringt dan achteraf |
+| Opslag | **Firestore**; de Realtime Database dient enkel voor de synchronisatie van klokken en timers | Fase 2: `clubs/{clubId}/matches/{matchId}` met subcollectie `events` |
+| Rollen bij de start | Trainer en clubadmin mogen de wedstrijdtafel bedienen | Rollen per toernooi volgen met de toernooimodule |
+| Schermen op een toernooi | Het scherm blijft **read-only**: de app genereert een url per view (rangschikking, timing per veld, ...) die je op een extra scherm opent | Vervangt de koppelcode en `lastSeen` uit 04 §4 |
+| Plaats in de app | Wedstrijd en toernooi zijn een **nieuwe module** naast home, player, team en screen control, geen feature binnen screen control | Fase 3 en 5 |
+
 ## Nog open
 
 | # | Vraag | Default tot beslissing | Antwoord Geert |

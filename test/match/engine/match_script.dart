@@ -48,7 +48,10 @@ class MatchScript {
   );
 
   /// Logt [data] op het huidige tijdstip, ook als de engine het zou weigeren.
-  MatchEvent add(MatchEventData data, {EventSource source = EventSource.screen}) {
+  MatchEvent add(
+    MatchEventData data, {
+    EventSource source = EventSource.screen,
+  }) {
     final event = _make(data, source);
     _seq++;
     events.add(event);
@@ -71,11 +74,8 @@ class MatchScript {
   MatchEvent stop([StopReason reason = StopReason.infringement]) =>
       add(MatchEventData.playStopped(reason: reason));
 
-  MatchEvent goal(
-    TeamColor team, {
-    int? cap,
-    GoalKind kind = GoalKind.field,
-  }) => add(MatchEventData.goalScored(team: team, scorerCap: cap, kind: kind));
+  MatchEvent goal(TeamColor team, {int? cap, GoalKind kind = GoalKind.field}) =>
+      add(MatchEventData.goalScored(team: team, scorerCap: cap, kind: kind));
 
   MatchEvent penalty(TeamColor team, int cap, int minutes) => add(
     MatchEventData.timePenaltyGiven(
@@ -86,14 +86,14 @@ class MatchScript {
     ),
   );
 
-  MatchEvent voidEvent(MatchEvent target) =>
-      add(MatchEventData.eventVoided(targetId: target.id, reason: 'vergissing'));
+  MatchEvent voidEvent(MatchEvent target) => add(
+    MatchEventData.eventVoided(targetId: target.id, reason: 'vergissing'),
+  );
 
   /// Laat het lopende spel doorgaan tot de klok [target] toont.
   void playUntilRemaining(Duration target) => wait(remaining! - target);
 
-  MatchEvent endPeriod() =>
-      add(MatchEventData.periodEnded(phase: state.phase));
+  MatchEvent endPeriod() => add(MatchEventData.periodEnded(phase: state.phase));
 
   /// Start de volgende speelfase, speelt ze zonder onderbreking uit en
   /// bevestigt het einde.

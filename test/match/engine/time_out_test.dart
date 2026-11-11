@@ -25,33 +25,36 @@ void main() {
     expect(match.state.rejectedEvents[event.id], isA<TimeOutNotAllowed>());
   });
 
-  test('14.2.6 T6: tweede time-out in dezelfde helft geweigerd, in P2 weer 1', () {
-    final match = MatchScript()..start();
-    match.wait(const Duration(minutes: 2));
-    match
-      ..stop()
-      ..add(_timeOutWhite);
-    expect(match.state.timeOutsUsed(white, 1), 1);
-    match.wait(const Duration(minutes: 1));
-    match.start(RestartType.afterTimeOut);
-    match.wait(const Duration(minutes: 1));
-    match.stop();
-    expect(
-      match.check(_timeOutWhite),
-      const TimeOutNotAllowed(TimeOutProblem.alreadyUsedThisHalf),
-    );
-    // Het andere team heeft zijn time-out nog.
-    expect(match.check(_timeOutBlack), isNull);
+  test(
+    '14.2.6 T6: tweede time-out in dezelfde helft geweigerd, in P2 weer 1',
+    () {
+      final match = MatchScript()..start();
+      match.wait(const Duration(minutes: 2));
+      match
+        ..stop()
+        ..add(_timeOutWhite);
+      expect(match.state.timeOutsUsed(white, 1), 1);
+      match.wait(const Duration(minutes: 1));
+      match.start(RestartType.afterTimeOut);
+      match.wait(const Duration(minutes: 1));
+      match.stop();
+      expect(
+        match.check(_timeOutWhite),
+        const TimeOutNotAllowed(TimeOutProblem.alreadyUsedThisHalf),
+      );
+      // Het andere team heeft zijn time-out nog.
+      expect(match.check(_timeOutBlack), isNull);
 
-    match.start();
-    match.wait(match.remaining!);
-    match
-      ..endPeriod()
-      ..start();
-    match.wait(const Duration(minutes: 1));
-    match.stop();
-    expect(match.check(_timeOutWhite), isNull);
-  });
+      match.start();
+      match.wait(match.remaining!);
+      match
+        ..endPeriod()
+        ..start();
+      match.wait(const Duration(minutes: 1));
+      match.stop();
+      expect(match.check(_timeOutWhite), isNull);
+    },
+  );
 
   test('14.2.6 T7: time-out in overtime 1 wordt geweigerd', () {
     final match = MatchScript(config: const MatchConfig(requiresWinner: true));

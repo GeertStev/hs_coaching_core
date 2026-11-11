@@ -72,8 +72,8 @@ lengths) lives in `lib/training/display/` on top of that timeline; it never chan
   `serverTimeOffsetProvider`), never stored or ticked. Same principle as the realtime timers above.
 - An event's time is the moment of the **tap**, not of the upload: no `ServerValue.timestamp` as
   event time.
-- Every clock rule has a unit test whose name carries the CMAS rule number
-  (`test('14.2.3.2 auto-stop at 2:00', ...)`).
+- Every clock rule has a unit test whose name starts with the CMAS rule number
+  (`test('14.2.3.2 T2: automatische stop op 2:00', ...)`; test names are Dutch like the other tests).
 - Several matches run at once (up to 3 fields): everything is keyed by `matchId`. **No** singleton or
   global "active match" in providers or services.
 - One table device per match with two operators: the chief referee runs the time with a HID remote
@@ -85,6 +85,22 @@ lengths) lives in `lib/training/display/` on top of that timeline; it never chan
 - The infringement table 17.7.1 is a **suggestion**, never enforced.
 - Domain terms in code are English as in the CMAS rules (penalty shot, advantage puck, ...). Comments
   stay Dutch and UI strings English, as everywhere else.
+
+**Engine layout** (`lib/match/engine/`, tests in `test/match/engine/`)
+- `MatchEvent` is an envelope (`id`, `matchId`, `seq`, `serverTimeMillis`, `source`, ...) around the
+  Freezed union `MatchEventData` (`type` key in JSON). The engine never creates ids or timestamps.
+- `reduceMatch(events)` → `MatchState` (read-only interface), `clockViewAt(state, nowServerMs)` →
+  `ClockView`, `validateEvent(state, candidate)` → `MatchRejection?`. The reducer applies the same
+  rules as the validator and skips rejected events (`MatchState.rejectedEvents`).
+- A voided event is left out and the whole log is reduced again; there is no incremental apply.
+- The score only changes through `GoalScored`. A scored penalty shot is logged as
+  `GoalScored(kind: penaltyShot)` followed by `PenaltyShotResolved(goal)`.
+- Durations as numbers only in `match_config.dart`; `engine_purity_test.dart` guards this, the
+  forbidden imports and `DateTime.now()`.
+- Tests write a match with `MatchScript` (`test/match/engine/match_script.dart`): `wait()` moves the
+  fake server clock, `add()` logs an event, `check()` asks the validator.
+- Table 17.7.1 is data in `assets/uwh/infringements_v13.json`; the engine only parses the decoded
+  JSON (`InfringementTable.fromJson`), loading the asset happens outside the engine.
 
 ## Riverpod 3
 - Hand-written providers only; no `@riverpod` codegen.

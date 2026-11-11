@@ -44,13 +44,20 @@ const List<MatchEventData> _allEvents = [
     timekeepers: ['Vierde'],
   ),
   MatchEventData.periodWarningGiven(phase: MatchPhase.p1),
-  MatchEventData.playStarted(restartType: RestartType.advantagePuck, team: _black),
+  MatchEventData.playStarted(
+    restartType: RestartType.advantagePuck,
+    team: _black,
+  ),
   MatchEventData.playStopped(reason: StopReason.injury),
   MatchEventData.stopReasonSpecified(targetId: 'e5', reason: StopReason.confer),
   MatchEventData.officialsTimeOutStarted(reason: 'overleg'),
   MatchEventData.teamTimeOutRequested(team: _white),
   MatchEventData.periodEnded(phase: MatchPhase.p1),
-  MatchEventData.goalScored(team: _black, scorerCap: 7, kind: GoalKind.penaltyGoal),
+  MatchEventData.goalScored(
+    team: _black,
+    scorerCap: 7,
+    kind: GoalKind.penaltyGoal,
+  ),
   MatchEventData.cautionGiven(
     team: _white,
     cap: 3,
@@ -63,7 +70,11 @@ const List<MatchEventData> _allEvents = [
     minutes: 2,
     infringementCode: '16.3.6',
   ),
-  MatchEventData.playerDismissed(team: _black, cap: 9, infringementCode: '16.3.17'),
+  MatchEventData.playerDismissed(
+    team: _black,
+    cap: 9,
+    infringementCode: '16.3.17',
+  ),
   MatchEventData.officialDismissed(team: _black, name: 'Coach'),
   MatchEventData.penaltyShotAwarded(againstTeam: _black),
   MatchEventData.penaltyShotResolved(
@@ -74,7 +85,10 @@ const List<MatchEventData> _allEvents = [
   MatchEventData.penaltyPlayerReturned(team: _white, cap: 3),
   MatchEventData.protestLogged(team: _white, by: 'Kapitein', text: 'Protest'),
   MatchEventData.eventVoided(targetId: 'e11', reason: 'verkeerd team'),
-  MatchEventData.matchEndedBySignOff(chiefSignature: 'CR', waterSignatures: ['WR1']),
+  MatchEventData.matchEndedBySignOff(
+    chiefSignature: 'CR',
+    waterSignatures: ['WR1'],
+  ),
   MatchEventData.resultDecidedByDelegate(winner: _white, text: 'Beslissing'),
   MatchEventData.matchForfeited(team: _black, decisionText: 'Niet opgedaagd'),
   MatchEventData.matchAbandoned(

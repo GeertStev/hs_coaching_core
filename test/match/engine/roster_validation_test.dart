@@ -6,10 +6,14 @@ import 'package:hs_coaching_core/match/engine/match_roster.dart';
 import 'match_script.dart';
 
 List<MatchPlayer> _players(int count) => [
-  for (var cap = 1; cap <= count; cap++) MatchPlayer(cap: cap, name: 'Speler $cap'),
+  for (var cap = 1; cap <= count; cap++)
+    MatchPlayer(cap: cap, name: 'Speler $cap'),
 ];
 
-MatchEventData _roster(List<MatchPlayer> players, {List<String> staff = const []}) =>
+MatchEventData _roster(
+  List<MatchPlayer> players, {
+  List<String> staff = const [],
+}) =>
     MatchEventData.rosterDeclared(team: white, players: players, staff: staff);
 
 void main() {
@@ -28,15 +32,18 @@ void main() {
     final match = MatchScript();
     expect(match.check(_roster(_players(10))), isNull);
     match.add(
-      _roster([
-        const MatchPlayer(cap: 1, name: 'An', role: MatchPlayerRole.captain),
-        const MatchPlayer(
-          cap: 15,
-          name: 'Bo',
-          role: MatchPlayerRole.viceCaptain,
-          playerId: 'uid-bo',
-        ),
-      ], staff: ['Coach']),
+      _roster(
+        [
+          const MatchPlayer(cap: 1, name: 'An', role: MatchPlayerRole.captain),
+          const MatchPlayer(
+            cap: 15,
+            name: 'Bo',
+            role: MatchPlayerRole.viceCaptain,
+            playerId: 'uid-bo',
+          ),
+        ],
+        staff: ['Coach'],
+      ),
     );
     expect(match.state.roster(white), hasLength(2));
     expect(match.state.roster(white).last.playerId, 'uid-bo');
@@ -79,8 +86,16 @@ void main() {
     expect(
       match.check(
         _roster([
-          const MatchPlayer(cap: 1, name: 'A', role: MatchPlayerRole.viceCaptain),
-          const MatchPlayer(cap: 2, name: 'B', role: MatchPlayerRole.viceCaptain),
+          const MatchPlayer(
+            cap: 1,
+            name: 'A',
+            role: MatchPlayerRole.viceCaptain,
+          ),
+          const MatchPlayer(
+            cap: 2,
+            name: 'B',
+            role: MatchPlayerRole.viceCaptain,
+          ),
         ]),
       ),
       const RosterInvalid(RosterProblem.multipleViceCaptains),
@@ -93,6 +108,9 @@ void main() {
       match.check(_roster(_players(6), staff: ['a', 'b', 'c', 'd', 'e'])),
       const RosterInvalid(RosterProblem.tooManyStaff),
     );
-    expect(match.check(_roster(_players(6), staff: ['a', 'b', 'c', 'd'])), isNull);
+    expect(
+      match.check(_roster(_players(6), staff: ['a', 'b', 'c', 'd'])),
+      isNull,
+    );
   });
 }

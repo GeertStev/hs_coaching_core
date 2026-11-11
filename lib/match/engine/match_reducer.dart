@@ -58,11 +58,8 @@ Map<String, MatchState> reduceMatches(Iterable<MatchEvent> events) {
   for (final event in events) {
     perMatch.putIfAbsent(event.matchId, () => []).add(event);
   }
-  return perMatch.map((id, list) => MatchEntry(id, reduceMatch(list)));
+  return perMatch.map((id, list) => MapEntry(id, reduceMatch(list)));
 }
-
-/// Kortere naam voor `MapEntry<String, MatchState>`.
-typedef MatchEntry = MapEntry<String, MatchState>;
 
 /// De toestand van [state] op [nowServerMs], zonder nieuwe events: alle
 /// klokken lopen door volgens de klokregels. Basis voor `clockViewAt`.
@@ -410,7 +407,8 @@ class _Machine implements MatchState {
   }
 
   @override
-  int timeOutsUsed(TeamColor team, int half) => _timeOutsUsed[(team, half)] ?? 0;
+  int timeOutsUsed(TeamColor team, int half) =>
+      _timeOutsUsed[(team, half)] ?? 0;
 
   @override
   bool get needsDelegateDecision =>
@@ -706,7 +704,9 @@ class _Machine implements MatchState {
 
   _Penalty? _penaltyAwaitingReturn(TeamColor team, int cap) {
     for (final penalty in _penalties) {
-      if (penalty.team == team && penalty.cap == cap && penalty.awaitingReturn) {
+      if (penalty.team == team &&
+          penalty.cap == cap &&
+          penalty.awaitingReturn) {
         return penalty;
       }
     }

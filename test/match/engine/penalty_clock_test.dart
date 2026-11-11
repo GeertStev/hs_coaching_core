@@ -109,27 +109,30 @@ void main() {
     expect(match.penaltyOf(penalty).status, PenaltyStatus.served);
   });
 
-  test('17.3 OPEN-2: de straf pauzeert tijdens de rust en loopt daarna door', () {
-    final match = MatchScript()..start();
-    match.playUntilRemaining(mmss(1, 0));
-    match.stop();
-    final penalty = match.penalty(black, 6, 2);
-    match.wait(const Duration(seconds: 30));
-    match.start();
-    match.wait(const Duration(seconds: 30));
-    expect(match.clock.periodExpired, isTrue);
-    expect(match.penaltyOf(penalty).remaining, mmss(1, 30));
-    match.endPeriod();
+  test(
+    '17.3 OPEN-2: de straf pauzeert tijdens de rust en loopt daarna door',
+    () {
+      final match = MatchScript()..start();
+      match.playUntilRemaining(mmss(1, 0));
+      match.stop();
+      final penalty = match.penalty(black, 6, 2);
+      match.wait(const Duration(seconds: 30));
+      match.start();
+      match.wait(const Duration(seconds: 30));
+      expect(match.clock.periodExpired, isTrue);
+      expect(match.penaltyOf(penalty).remaining, mmss(1, 30));
+      match.endPeriod();
 
-    match.wait(const Duration(minutes: 3));
-    expect(match.penaltyOf(penalty).remaining, mmss(1, 30));
-    expect(match.penaltyOf(penalty).status, PenaltyStatus.paused);
+      match.wait(const Duration(minutes: 3));
+      expect(match.penaltyOf(penalty).remaining, mmss(1, 30));
+      expect(match.penaltyOf(penalty).status, PenaltyStatus.paused);
 
-    match.start();
-    match.wait(const Duration(seconds: 30));
-    expect(match.penaltyOf(penalty).remaining, mmss(1, 0));
-    expect(match.penaltyOf(penalty).status, PenaltyStatus.running);
-  });
+      match.start();
+      match.wait(const Duration(seconds: 30));
+      expect(match.penaltyOf(penalty).remaining, mmss(1, 0));
+      expect(match.penaltyOf(penalty).status, PenaltyStatus.running);
+    },
+  );
 
   test('17.3 OPEN-2: de straf pauzeert tijdens een team time-out', () {
     final match = MatchScript()..start();

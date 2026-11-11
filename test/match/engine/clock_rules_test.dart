@@ -60,28 +60,31 @@ void main() {
       expect(match.state.phase, MatchPhase.halfTime);
     });
 
-    test('15.1.8 een stop via de afstandsbediening telt zoals op het scherm', () {
-      final match = MatchScript()..start();
-      match.playUntilRemaining(mmss(10, 0));
-      final stop = match.add(
-        const MatchEventData.playStopped(),
-        source: EventSource.remote,
-      );
-      expect(match.state.playRunning, isFalse);
-      expect(match.state.stopReasons[stop.id], StopReason.unspecified);
-      // De tafel vult de reden achteraf aan; de klok hangt er niet van af.
-      match.add(
-        MatchEventData.stopReasonSpecified(
-          targetId: stop.id,
-          reason: StopReason.outOfBounds,
-        ),
-      );
-      expect(match.state.stopReasons[stop.id], StopReason.outOfBounds);
-      expect(
-        match.check(const MatchEventData.playStopped()),
-        const PlayNotAllowed(PlayProblem.notRunning),
-      );
-    });
+    test(
+      '15.1.8 een stop via de afstandsbediening telt zoals op het scherm',
+      () {
+        final match = MatchScript()..start();
+        match.playUntilRemaining(mmss(10, 0));
+        final stop = match.add(
+          const MatchEventData.playStopped(),
+          source: EventSource.remote,
+        );
+        expect(match.state.playRunning, isFalse);
+        expect(match.state.stopReasons[stop.id], StopReason.unspecified);
+        // De tafel vult de reden achteraf aan; de klok hangt er niet van af.
+        match.add(
+          MatchEventData.stopReasonSpecified(
+            targetId: stop.id,
+            reason: StopReason.outOfBounds,
+          ),
+        );
+        expect(match.state.stopReasons[stop.id], StopReason.outOfBounds);
+        expect(
+          match.check(const MatchEventData.playStopped()),
+          const PlayNotAllowed(PlayProblem.notRunning),
+        );
+      },
+    );
   });
 
   group('stilgezette klok in de laatste 2 minuten', () {
@@ -124,20 +127,26 @@ void main() {
       expect(match.remaining, mmss(1, 20));
     });
 
-    test('14.2.3.1 T20: stop, 10 s later een goal: de klok liep die 10 s door', () {
-      final match = MatchScript()..startSecondPeriod();
-      match.playUntilRemaining(mmss(1, 30));
-      match.add(const MatchEventData.playStopped(), source: EventSource.remote);
-      match.wait(const Duration(seconds: 10));
-      // Vóór het goal-event staat de klok nog stil...
-      expect(match.remaining, mmss(1, 30));
-      match.goal(black);
-      // ...en erna springt ze vooruit.
-      expect(match.remaining, mmss(1, 20));
-      match.wait(const Duration(seconds: 5));
-      match.start();
-      expect(match.remaining, mmss(1, 15));
-    });
+    test(
+      '14.2.3.1 T20: stop, 10 s later een goal: de klok liep die 10 s door',
+      () {
+        final match = MatchScript()..startSecondPeriod();
+        match.playUntilRemaining(mmss(1, 30));
+        match.add(
+          const MatchEventData.playStopped(),
+          source: EventSource.remote,
+        );
+        match.wait(const Duration(seconds: 10));
+        // Vóór het goal-event staat de klok nog stil...
+        expect(match.remaining, mmss(1, 30));
+        match.goal(black);
+        // ...en erna springt ze vooruit.
+        expect(match.remaining, mmss(1, 20));
+        match.wait(const Duration(seconds: 5));
+        match.start();
+        expect(match.remaining, mmss(1, 15));
+      },
+    );
 
     test('14.2.3.1 T21: stop zonder goal: de klok stond stil', () {
       final match = MatchScript()..startSecondPeriod();
@@ -181,7 +190,9 @@ void main() {
         'aankondiging', () {
       final match = MatchScript()..start();
       match.playUntilRemaining(mmss(8, 0));
-      match.add(const MatchEventData.officialsTimeOutStarted(reason: 'overleg'));
+      match.add(
+        const MatchEventData.officialsTimeOutStarted(reason: 'overleg'),
+      );
       match.wait(const Duration(seconds: 40));
       expect(match.remaining, mmss(8, 0));
       expect(match.clock.timeOut, isNotNull);
@@ -194,20 +205,25 @@ void main() {
       expect(match.remaining, mmss(7, 45));
     });
 
-    test('14.2.3 T16: de klok herstart ook als het startsignaal later volgt', () {
-      final match = MatchScript()..start();
-      match.playUntilRemaining(mmss(8, 0));
-      match.add(const MatchEventData.officialsTimeOutStarted());
-      match.wait(const Duration(seconds: 40));
-      match.goal(white);
-      match.wait(const Duration(seconds: 15));
-      expect(match.remaining, mmss(7, 45));
-    });
+    test(
+      '14.2.3 T16: de klok herstart ook als het startsignaal later volgt',
+      () {
+        final match = MatchScript()..start();
+        match.playUntilRemaining(mmss(8, 0));
+        match.add(const MatchEventData.officialsTimeOutStarted());
+        match.wait(const Duration(seconds: 40));
+        match.goal(white);
+        match.wait(const Duration(seconds: 15));
+        expect(match.remaining, mmss(7, 45));
+      },
+    );
 
     test('14.2.3 zonder goal herstart de klok bij het startsignaal', () {
       final match = MatchScript()..start();
       match.playUntilRemaining(mmss(8, 0));
-      match.add(const MatchEventData.officialsTimeOutStarted(reason: 'blessure'));
+      match.add(
+        const MatchEventData.officialsTimeOutStarted(reason: 'blessure'),
+      );
       expect(match.state.playRunning, isFalse);
       match.wait(const Duration(minutes: 4));
       match.start(RestartType.equalPuck);
@@ -247,40 +263,53 @@ void main() {
       expect(match.remaining, mmss(1, 0));
     });
 
-    test('14.2.3.1 T19/T3+T4: stilstand en goal binnen het venster van 1:00', () {
-      final match = MatchScript(config: config)..startSecondPeriod();
-      match.playUntilRemaining(mmss(0, 40));
-      match.stop();
-      match.wait(const Duration(seconds: 15));
-      expect(match.remaining, mmss(0, 40));
-      match.start();
-      match.goal(white);
-      match.wait(const Duration(seconds: 10));
-      expect(match.remaining, mmss(0, 30));
-    });
+    test(
+      '14.2.3.1 T19/T3+T4: stilstand en goal binnen het venster van 1:00',
+      () {
+        final match = MatchScript(config: config)..startSecondPeriod();
+        match.playUntilRemaining(mmss(0, 40));
+        match.stop();
+        match.wait(const Duration(seconds: 15));
+        expect(match.remaining, mmss(0, 40));
+        match.start();
+        match.goal(white);
+        match.wait(const Duration(seconds: 10));
+        expect(match.remaining, mmss(0, 30));
+      },
+    );
 
-    test('14.2.1.1 T19/T11: de rust duurt 2 minuten en gelijkspel volstaat', () {
-      final match = MatchScript(config: config)..playFullPeriod();
-      match.wait(const Duration(seconds: 30));
-      expect(match.clock.breakRemaining, mmss(1, 30));
-      match.playFullPeriod();
-      expect(match.state.phase, MatchPhase.awaitingSignOff);
-    });
+    test(
+      '14.2.1.1 T19/T11: de rust duurt 2 minuten en gelijkspel volstaat',
+      () {
+        final match = MatchScript(config: config)..playFullPeriod();
+        match.wait(const Duration(seconds: 30));
+        expect(match.clock.breakRemaining, mmss(1, 30));
+        match.playFullPeriod();
+        expect(match.state.phase, MatchPhase.awaitingSignOff);
+      },
+    );
   });
 
   group('aftellingen', () {
-    test('15.1.5 het 30 s-signaal start een aftelling tot het startsignaal', () {
-      final match = MatchScript();
-      expect(
-        match.check(const MatchEventData.periodWarningGiven(phase: MatchPhase.p2)),
-        const EventNotAllowed(GeneralProblem.wrongPhase),
-      );
-      match.add(const MatchEventData.periodWarningGiven(phase: MatchPhase.p1));
-      match.wait(const Duration(seconds: 12));
-      expect(match.clock.periodStartCountdown, const Duration(seconds: 18));
-      match.start();
-      expect(match.clock.periodStartCountdown, isNull);
-    });
+    test(
+      '15.1.5 het 30 s-signaal start een aftelling tot het startsignaal',
+      () {
+        final match = MatchScript();
+        expect(
+          match.check(
+            const MatchEventData.periodWarningGiven(phase: MatchPhase.p2),
+          ),
+          const EventNotAllowed(GeneralProblem.wrongPhase),
+        );
+        match.add(
+          const MatchEventData.periodWarningGiven(phase: MatchPhase.p1),
+        );
+        match.wait(const Duration(seconds: 12));
+        expect(match.clock.periodStartCountdown, const Duration(seconds: 18));
+        match.start();
+        expect(match.clock.periodStartCountdown, isNull);
+      },
+    );
 
     test('15.1.6 na een goal telt de herstart af vanaf 30 s', () {
       final match = MatchScript()..start();

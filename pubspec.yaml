@@ -33,6 +33,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Overtredingentabel 17.7.1 voor de match engine (zie lib/match/engine/).
+  assets:
+    - assets/uwh/infringements_v13.json
 
   # To add assets to your package, add an assets section, like this:
   # assets:

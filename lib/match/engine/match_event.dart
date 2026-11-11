@@ -58,9 +58,8 @@ abstract class MatchScore with _$MatchScore {
   bool get isTied => white == black;
 
   /// Team met de meeste goals, of `null` bij gelijkspel.
-  TeamColor? get leader => isTied
-      ? null
-      : (white > black ? TeamColor.white : TeamColor.black);
+  TeamColor? get leader =>
+      isTied ? null : (white > black ? TeamColor.white : TeamColor.black);
 }
 
 /// Eén regel in het append-only event log van een wedstrijd

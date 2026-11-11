@@ -19,7 +19,10 @@ List<Object?> _summary(MatchState state, int now) {
     state.playRunning,
     state.goals.map((goal) => goal.eventId).toList(),
     clock.penalties
-        .map((penalty) => '${penalty.cap}:${penalty.status.name}:${penalty.remaining}')
+        .map(
+          (penalty) =>
+              '${penalty.cap}:${penalty.status.name}:${penalty.remaining}',
+        )
         .toList(),
     state.timeOutsUsed(white, 1),
     state.lastSeq,
@@ -77,8 +80,14 @@ void main() {
     expect(together['veld-2']!.score.white, 0);
     expect(together['veld-2']!.timeOutsUsed(white, 1), 1);
     expect(together['veld-1']!.timeOutsUsed(white, 1), 0);
-    expect(clockViewAt(together['veld-3']!, field3.now).periodRemaining, mmss(1, 30));
-    expect(clockViewAt(together['veld-2']!, field2.now).periodRemaining, mmss(9, 0));
+    expect(
+      clockViewAt(together['veld-3']!, field3.now).periodRemaining,
+      mmss(1, 30),
+    );
+    expect(
+      clockViewAt(together['veld-2']!, field2.now).periodRemaining,
+      mmss(9, 0),
+    );
   });
 
   test('02 §1 de reducer is deterministisch en sorteert op seq', () {

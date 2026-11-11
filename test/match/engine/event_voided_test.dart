@@ -67,7 +67,10 @@ void main() {
     MatchRejection? check(String targetId) =>
         match.check(MatchEventData.eventVoided(targetId: targetId));
 
-    expect(check('bestaat-niet'), const VoidNotAllowed(VoidProblem.unknownTarget));
+    expect(
+      check('bestaat-niet'),
+      const VoidNotAllowed(VoidProblem.unknownTarget),
+    );
     expect(
       check(match.events.first.id),
       const VoidNotAllowed(VoidProblem.matchCreated),
