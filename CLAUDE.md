@@ -19,6 +19,9 @@ clubs/{clubId}/
     settings/{content|global|chrono|tabata|training|game|sketch|team|...}  # one doc per feature
     sketches/{sketchId}/elements/{elementId}
     ...                                     # app-only collections: see hs_coaching_app/CLAUDE.md
+  matches/{matchId}                         # MatchMeta: lease {deviceId, sinceMillis}, liveFieldId
+    events/{seq}                            # MatchEvent, doc id = seq, create-only
+  fields/{fieldId}                          # liveMatchId: at most one live match per field
 ```
 `clubId`/`displayId` come from `displayDeviceIdsProvider` (`lib/core/providers/`), still
 **hardcoded** to `holySquid`/`bilzen`. Nearly every repository provider depends on it; replacing it
@@ -101,6 +104,19 @@ lengths) lives in `lib/training/display/` on top of that timeline; it never chan
   fake server clock, `add()` logs an event, `check()` asks the validator.
 - Table 17.7.1 is data in `assets/uwh/infringements_v13.json`; the engine only parses the decoded
   JSON (`InfringementTable.fromJson`), loading the asset happens outside the engine.
+
+**Sync layer** (`lib/match/`, tests in `test/match/`)
+- `MatchRepository` (read: `watchEvents`, `watchMeta`, `watchLiveMatchId`, extension `watch` →
+  `Stream<MatchState>`) and `MatchWriteRepository` (`createMatch`, lease, `append`, `goLive`/`endLive`).
+  `FirestoreMatchRepository` is the read-only Firestore side (screen uses it as-is, the app extends
+  it); `InMemoryMatchRepository` behaves like the server and is what the tests use.
+- `MatchSession` is the only place that builds a `MatchEvent`: next `seq`, tap time from the injected
+  server clock, validation, optimistic state, rollback + `onWriteError` when the server refuses.
+  `add()` is synchronous on purpose: a tap never waits for the network.
+- Writer lease lives in the match doc. Only the lease holder appends; taking over an existing lease
+  needs `takeOver: true` (the UI asks for confirmation). Enforced in the session and in the rules.
+- `append` must stay a plain write (no transaction, no server timestamp): Firestore's offline queue
+  then delivers it later with the original tap time.
 
 ## Riverpod 3
 - Hand-written providers only; no `@riverpod` codegen.

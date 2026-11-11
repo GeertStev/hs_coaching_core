@@ -99,8 +99,8 @@ De effectieve config wordt door de toernooimodule bepaald (04 §1: toernooi → 
 
 ## 6. Synchronisatie (Firebase)
 
-- Pad (voorstel, af te stemmen op de bestaande structuur): `matches/{matchId}/events/{seq}` + `matches/{matchId}/meta`.
-- Schrijven met een **transaction** op `meta/lastSeq` om dubbele seq te voorkomen bij twee tafeltoestellen.
+- Pad (fase 2, in Firestore): `clubs/{clubId}/matches/{matchId}` (lease en live-veld) met daaronder `events/{seq}`, en `clubs/{clubId}/fields/{fieldId}` (`liveMatchId`).
+- Het document-id van een event is zijn `seq` en de regels laten alleen aanmaken toe: een tweede event met hetzelfde nummer wordt door de server geweigerd. Bewust geen transactie voor het schrijven van een event, want een transactie werkt niet offline en de tik moet in de wachtrij kunnen.
 - Clients luisteren naar `events` en reduceren lokaal. Het scorebord schrijft nooit.
 - Offline: events lokaal in de wachtrij zetten met lokale tijd plus offset. Bij synchronisatie behoud je de oorspronkelijke tijdstempel (de **tik** is officieel, niet het moment van uploaden).
 - Gebruik `ServerValue.timestamp` **niet** voor de tijd van een event: dat geeft het uploadmoment. Gebruik `localNow + serverTimeOffset` op het moment van de tik.
@@ -109,7 +109,7 @@ De effectieve config wordt door de toernooimodule bepaald (04 §1: toernooi → 
 
 - Per wedstrijd is er **één schrijvend toestel**: het tafeltoestel van de vierde scheidsrechter. De hoofdscheidsrechter bedient de tijd via een HID-afstandsbediening die aan **dat toestel** gekoppeld is (03 §5). Beide invoeren komen dus lokaal in dezelfde wachtrij, zonder concurrentie tussen bedieners.
 - Vanuit de afstandsbediening komen enkel `PlayStarted`, `PlayStopped(unspecified)` en optioneel `OfficialsTimeOutStarted`, steeds met `source: remote`. Goals, straffen en alle andere events komen van het scherm.
-- **Writer lease**: `matches/{matchId}/lease {deviceId, since}`. Een tweede toestel mag lezen maar niet schrijven. Overname (bv. lege batterij) kan alleen na een expliciete bevestiging op het nieuwe toestel. De `seq`-transactie blijft als vangnet tegen dubbele events bij herverbinden.
+- **Writer lease**: veld `lease {deviceId, sinceMillis}` in `matches/{matchId}`, genomen met een transactie. Een tweede toestel mag lezen maar niet schrijven. Overname (bv. lege batterij) kan alleen na een expliciete bevestiging op het nieuwe toestel. Het unieke `seq` als document-id blijft het vangnet tegen dubbele events bij herverbinden.
 
 ## 6b. Meerdere wedstrijden tegelijk
 
