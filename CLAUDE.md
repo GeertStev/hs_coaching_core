@@ -51,6 +51,41 @@ lasting as long as the longest group (`TrainingStep.parallelGroups`, `parallelGr
 pool screen's coarser view (one step = one repetition of one exercise, breadcrumb levels, transitions,
 lengths) lives in `lib/training/display/` on top of that timeline; it never changes `currentStepIndex`.
 
+## Underwater hockey: match, tournament and statistics modules
+**Specs** in `docs/uwh/`; read them before touching these modules:
+- `01-regels-domein.md`: software extract of the CMAS rules v13 (source PDF in `docs/uwh/reference/`,
+  only consult it when a spec is unclear).
+- `02-match-engine.md`: event log, reducer, clock rules, acceptance tests.
+- `03-wedstrijdtafel-ui.md`: table console and scoreboards.
+- `04-toernooi.md`, `05-spelersstatistieken.md`: later phases.
+- `open-vragen.md`: undecided points. **Never fill these in yourself**: implement the listed default
+  as a configurable policy and mark it with `// OPEN-x`.
+- `prompts.md`: the work is done phase by phase in this order. No UI before the engine tests are green.
+
+**Hard rules**
+- The match engine lives in this repo as **pure Dart**: no imports of `flutter`, `firebase_*` or
+  `cloud_*`, no `DateTime.now()` (tests use a fake clock).
+- Firebase sits behind a `MatchRepository` interface. This is a deliberate exception to "no
+  `I<X>Repository` interfaces" elsewhere: the engine and its tests must run without Firebase.
+- Events are append-only. Correct with `EventVoided`, never with an update or delete.
+- Clocks are **computed** from events + server time (`localNow + .info/serverTimeOffset`, reuse
+  `serverTimeOffsetProvider`), never stored or ticked. Same principle as the realtime timers above.
+- An event's time is the moment of the **tap**, not of the upload: no `ServerValue.timestamp` as
+  event time.
+- Every clock rule has a unit test whose name carries the CMAS rule number
+  (`test('14.2.3.2 auto-stop at 2:00', ...)`).
+- Several matches run at once (up to 3 fields): everything is keyed by `matchId`. **No** singleton or
+  global "active match" in providers or services.
+- One table device per match with two operators: the chief referee runs the time with a HID remote
+  (`source: remote`, only start/stop and optionally officials' time-out), the fourth referee the
+  screen.
+- Substitutions and assists are **not** recorded: no events, UI or statistics for them.
+- No hardcoded durations: everything comes from `MatchConfig`, which can differ per tournament phase
+  and per match and is stored as a snapshot in `MatchCreated`.
+- The infringement table 17.7.1 is a **suggestion**, never enforced.
+- Domain terms in code are English as in the CMAS rules (penalty shot, advantage puck, ...). Comments
+  stay Dutch and UI strings English, as everywhere else.
+
 ## Riverpod 3
 - Hand-written providers only; no `@riverpod` codegen.
 - No `FamilyNotifier`/`FamilyAsyncNotifier`/`FamilyStreamNotifier`: use the base class, pass family
