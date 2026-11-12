@@ -437,4 +437,23 @@ void main() {
     final json = jsonDecode(jsonEncode(meta.toJson())) as Map<String, dynamic>;
     expect(MatchMeta.fromJson(json), meta);
   });
+
+  test('02 §6 events: volledige log op seq, ook vernietigde events', () async {
+    final table = _session(repository, clock, deviceId: 'tafel-A');
+    await table.takeLease();
+    await _settle();
+    table.add(_created);
+    table.add(const MatchEventData.playStarted());
+    final goal = table.add(const MatchEventData.goalScored(team: _white));
+    table.add(MatchEventData.eventVoided(targetId: goal.id));
+
+    // Nog onderweg naar de server en toch al in het log.
+    expect(table.events.map((event) => event.seq), [1, 2, 3, 4]);
+    await table.pendingWrites;
+    await _settle();
+    expect(table.events.map((event) => event.seq), [1, 2, 3, 4]);
+    expect(table.state.voidedEventIds, {goal.id});
+    expect(table.state.score.white, 0);
+    await table.dispose();
+  });
 }
