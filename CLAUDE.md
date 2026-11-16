@@ -136,8 +136,9 @@ first, then the team scheduler, the app screens, the pool screen).
   `(rating - (mean - stdev of the remaining candidates at that position)) x participation x fatigue`,
   winner goes to the weakest team with a free slot. Any number of teams; numbers in `SchedulerConfig`.
   Sheet quirks are marked `SHEET-Sx`; the deliberate deviations (ties, fixed position + team) are
-  listed in its doc comment. Not yet checked cell by cell against the sheet (needs a copy with
-  attendance ticked; **never write to Geert's original sheets**).
+  listed in its doc comment. `scheduler_sheet_case_test.dart` checks every pick of one real case
+  (14 present, read from a copy of the sheet) against the sheet. **Never write to Geert's original
+  sheets**; only read from the copy he shares.
 - `SquadPlayer` (club roster, `clubs/{clubId}/players`) is separate from app members and from
   `MatchPlayer`; `team/player_model.dart` is the old Apps Script model and goes away later.
 - A game is always white against black; the scheduler itself must handle any number of teams
