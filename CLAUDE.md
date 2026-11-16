@@ -132,6 +132,12 @@ first, then the team scheduler, the app screens, the pool screen).
 - `sheet_parity_test.dart` checks all 166 games of the 2026-11-15 export against the sheet's own
   numbers. The fixture (`test/scheduler/fixtures/`) holds indexes and numbers only: **never commit
   player names** (the full export lives outside git).
+- `scheduleTeams` (`team_scheduler.dart`) ports the sheet's "Scheduler" tab: one pick per step, score
+  `(rating - (mean - stdev of the remaining candidates at that position)) x participation x fatigue`,
+  winner goes to the weakest team with a free slot. Any number of teams; numbers in `SchedulerConfig`.
+  Sheet quirks are marked `SHEET-Sx`; the deliberate deviations (ties, fixed position + team) are
+  listed in its doc comment. Not yet checked cell by cell against the sheet (needs a copy with
+  attendance ticked; **never write to Geert's original sheets**).
 - `SquadPlayer` (club roster, `clubs/{clubId}/players`) is separate from app members and from
   `MatchPlayer`; `team/player_model.dart` is the old Apps Script model and goes away later.
 - A game is always white against black; the scheduler itself must handle any number of teams
