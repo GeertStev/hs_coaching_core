@@ -359,6 +359,8 @@ void main() {
         jsonDecode(jsonEncode(config.toJson())) as Map<String, dynamic>,
       );
       expect(decoded, config);
+      expect(decoded.compositions, hasLength(11));
+      expect(decoded.teamNames.first, 'White');
     });
   });
 

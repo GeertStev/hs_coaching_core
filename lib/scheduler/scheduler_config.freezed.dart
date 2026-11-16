@@ -30,7 +30,10 @@ mixin _$SchedulerConfig {
 /// afgewogen.
  double get experienceMinutes;/// Het blad telt bij elke speeltijd dit kleine getal op, zodat er nooit
 /// door nul gedeeld wordt.
- double get playtimeOffset;
+ double get playtimeOffset;/// De opstellingen waaruit de trainer per ploeg kiest.
+ List<TeamComposition> get compositions;/// Ploegnamen in de volgorde waarin ze voorgesteld worden. Een oefen-
+/// wedstrijd is altijd de eerste tegen de tweede.
+ List<String> get teamNames;
 /// Create a copy of SchedulerConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -43,16 +46,16 @@ $SchedulerConfigCopyWith<SchedulerConfig> get copyWith => _$SchedulerConfigCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SchedulerConfig&&(identical(other.gameMinutes, gameMinutes) || other.gameMinutes == gameMinutes)&&(identical(other.blockedThreshold, blockedThreshold) || other.blockedThreshold == blockedThreshold)&&(identical(other.noRatingPenalty, noRatingPenalty) || other.noRatingPenalty == noRatingPenalty)&&(identical(other.scarcePositionBonus, scarcePositionBonus) || other.scarcePositionBonus == scarcePositionBonus)&&(identical(other.scarcePositionMargin, scarcePositionMargin) || other.scarcePositionMargin == scarcePositionMargin)&&(identical(other.reservedSlotPenalty, reservedSlotPenalty) || other.reservedSlotPenalty == reservedSlotPenalty)&&(identical(other.candidateCutoff, candidateCutoff) || other.candidateCutoff == candidateCutoff)&&(identical(other.experienceMinutes, experienceMinutes) || other.experienceMinutes == experienceMinutes)&&(identical(other.playtimeOffset, playtimeOffset) || other.playtimeOffset == playtimeOffset));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SchedulerConfig&&(identical(other.gameMinutes, gameMinutes) || other.gameMinutes == gameMinutes)&&(identical(other.blockedThreshold, blockedThreshold) || other.blockedThreshold == blockedThreshold)&&(identical(other.noRatingPenalty, noRatingPenalty) || other.noRatingPenalty == noRatingPenalty)&&(identical(other.scarcePositionBonus, scarcePositionBonus) || other.scarcePositionBonus == scarcePositionBonus)&&(identical(other.scarcePositionMargin, scarcePositionMargin) || other.scarcePositionMargin == scarcePositionMargin)&&(identical(other.reservedSlotPenalty, reservedSlotPenalty) || other.reservedSlotPenalty == reservedSlotPenalty)&&(identical(other.candidateCutoff, candidateCutoff) || other.candidateCutoff == candidateCutoff)&&(identical(other.experienceMinutes, experienceMinutes) || other.experienceMinutes == experienceMinutes)&&(identical(other.playtimeOffset, playtimeOffset) || other.playtimeOffset == playtimeOffset)&&const DeepCollectionEquality().equals(other.compositions, compositions)&&const DeepCollectionEquality().equals(other.teamNames, teamNames));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,gameMinutes,blockedThreshold,noRatingPenalty,scarcePositionBonus,scarcePositionMargin,reservedSlotPenalty,candidateCutoff,experienceMinutes,playtimeOffset);
+int get hashCode => Object.hash(runtimeType,gameMinutes,blockedThreshold,noRatingPenalty,scarcePositionBonus,scarcePositionMargin,reservedSlotPenalty,candidateCutoff,experienceMinutes,playtimeOffset,const DeepCollectionEquality().hash(compositions),const DeepCollectionEquality().hash(teamNames));
 
 @override
 String toString() {
-  return 'SchedulerConfig(gameMinutes: $gameMinutes, blockedThreshold: $blockedThreshold, noRatingPenalty: $noRatingPenalty, scarcePositionBonus: $scarcePositionBonus, scarcePositionMargin: $scarcePositionMargin, reservedSlotPenalty: $reservedSlotPenalty, candidateCutoff: $candidateCutoff, experienceMinutes: $experienceMinutes, playtimeOffset: $playtimeOffset)';
+  return 'SchedulerConfig(gameMinutes: $gameMinutes, blockedThreshold: $blockedThreshold, noRatingPenalty: $noRatingPenalty, scarcePositionBonus: $scarcePositionBonus, scarcePositionMargin: $scarcePositionMargin, reservedSlotPenalty: $reservedSlotPenalty, candidateCutoff: $candidateCutoff, experienceMinutes: $experienceMinutes, playtimeOffset: $playtimeOffset, compositions: $compositions, teamNames: $teamNames)';
 }
 
 
@@ -63,7 +66,7 @@ abstract mixin class $SchedulerConfigCopyWith<$Res>  {
   factory $SchedulerConfigCopyWith(SchedulerConfig value, $Res Function(SchedulerConfig) _then) = _$SchedulerConfigCopyWithImpl;
 @useResult
 $Res call({
- int gameMinutes, double blockedThreshold, double noRatingPenalty, double scarcePositionBonus, int scarcePositionMargin, double reservedSlotPenalty, double candidateCutoff, double experienceMinutes, double playtimeOffset
+ int gameMinutes, double blockedThreshold, double noRatingPenalty, double scarcePositionBonus, int scarcePositionMargin, double reservedSlotPenalty, double candidateCutoff, double experienceMinutes, double playtimeOffset, List<TeamComposition> compositions, List<String> teamNames
 });
 
 
@@ -80,7 +83,7 @@ class _$SchedulerConfigCopyWithImpl<$Res>
 
 /// Create a copy of SchedulerConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? gameMinutes = null,Object? blockedThreshold = null,Object? noRatingPenalty = null,Object? scarcePositionBonus = null,Object? scarcePositionMargin = null,Object? reservedSlotPenalty = null,Object? candidateCutoff = null,Object? experienceMinutes = null,Object? playtimeOffset = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? gameMinutes = null,Object? blockedThreshold = null,Object? noRatingPenalty = null,Object? scarcePositionBonus = null,Object? scarcePositionMargin = null,Object? reservedSlotPenalty = null,Object? candidateCutoff = null,Object? experienceMinutes = null,Object? playtimeOffset = null,Object? compositions = null,Object? teamNames = null,}) {
   return _then(_self.copyWith(
 gameMinutes: null == gameMinutes ? _self.gameMinutes : gameMinutes // ignore: cast_nullable_to_non_nullable
 as int,blockedThreshold: null == blockedThreshold ? _self.blockedThreshold : blockedThreshold // ignore: cast_nullable_to_non_nullable
@@ -91,7 +94,9 @@ as int,reservedSlotPenalty: null == reservedSlotPenalty ? _self.reservedSlotPena
 as double,candidateCutoff: null == candidateCutoff ? _self.candidateCutoff : candidateCutoff // ignore: cast_nullable_to_non_nullable
 as double,experienceMinutes: null == experienceMinutes ? _self.experienceMinutes : experienceMinutes // ignore: cast_nullable_to_non_nullable
 as double,playtimeOffset: null == playtimeOffset ? _self.playtimeOffset : playtimeOffset // ignore: cast_nullable_to_non_nullable
-as double,
+as double,compositions: null == compositions ? _self.compositions : compositions // ignore: cast_nullable_to_non_nullable
+as List<TeamComposition>,teamNames: null == teamNames ? _self.teamNames : teamNames // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -176,10 +181,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset,  List<TeamComposition> compositions,  List<String> teamNames)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SchedulerConfig() when $default != null:
-return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset);case _:
+return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset,_that.compositions,_that.teamNames);case _:
   return orElse();
 
 }
@@ -197,10 +202,10 @@ return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset,  List<TeamComposition> compositions,  List<String> teamNames)  $default,) {final _that = this;
 switch (_that) {
 case _SchedulerConfig():
-return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset);case _:
+return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset,_that.compositions,_that.teamNames);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -217,10 +222,10 @@ return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int gameMinutes,  double blockedThreshold,  double noRatingPenalty,  double scarcePositionBonus,  int scarcePositionMargin,  double reservedSlotPenalty,  double candidateCutoff,  double experienceMinutes,  double playtimeOffset,  List<TeamComposition> compositions,  List<String> teamNames)?  $default,) {final _that = this;
 switch (_that) {
 case _SchedulerConfig() when $default != null:
-return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset);case _:
+return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_that.scarcePositionBonus,_that.scarcePositionMargin,_that.reservedSlotPenalty,_that.candidateCutoff,_that.experienceMinutes,_that.playtimeOffset,_that.compositions,_that.teamNames);case _:
   return null;
 
 }
@@ -229,10 +234,10 @@ return $default(_that.gameMinutes,_that.blockedThreshold,_that.noRatingPenalty,_
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _SchedulerConfig implements SchedulerConfig {
-  const _SchedulerConfig({this.gameMinutes = 30, this.blockedThreshold = 100000, this.noRatingPenalty = 10000, this.scarcePositionBonus = 2000, this.scarcePositionMargin = 1, this.reservedSlotPenalty = 10000, this.candidateCutoff = -5000, this.experienceMinutes = 6000, this.playtimeOffset = 0.01});
+  const _SchedulerConfig({this.gameMinutes = 30, this.blockedThreshold = 100000, this.noRatingPenalty = 10000, this.scarcePositionBonus = 2000, this.scarcePositionMargin = 1, this.reservedSlotPenalty = 10000, this.candidateCutoff = -5000, this.experienceMinutes = 6000, this.playtimeOffset = 0.01, final  List<TeamComposition> compositions = defaultCompositions, final  List<String> teamNames = defaultTeamNames}): _compositions = compositions,_teamNames = teamNames;
   factory _SchedulerConfig.fromJson(Map<String, dynamic> json) => _$SchedulerConfigFromJson(json);
 
 /// Speeltijd waarmee de vermoeidheid en de verwachte score rekenen.
@@ -259,6 +264,26 @@ class _SchedulerConfig implements SchedulerConfig {
 /// Het blad telt bij elke speeltijd dit kleine getal op, zodat er nooit
 /// door nul gedeeld wordt.
 @override@JsonKey() final  double playtimeOffset;
+/// De opstellingen waaruit de trainer per ploeg kiest.
+ final  List<TeamComposition> _compositions;
+/// De opstellingen waaruit de trainer per ploeg kiest.
+@override@JsonKey() List<TeamComposition> get compositions {
+  if (_compositions is EqualUnmodifiableListView) return _compositions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_compositions);
+}
+
+/// Ploegnamen in de volgorde waarin ze voorgesteld worden. Een oefen-
+/// wedstrijd is altijd de eerste tegen de tweede.
+ final  List<String> _teamNames;
+/// Ploegnamen in de volgorde waarin ze voorgesteld worden. Een oefen-
+/// wedstrijd is altijd de eerste tegen de tweede.
+@override@JsonKey() List<String> get teamNames {
+  if (_teamNames is EqualUnmodifiableListView) return _teamNames;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_teamNames);
+}
+
 
 /// Create a copy of SchedulerConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -273,16 +298,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SchedulerConfig&&(identical(other.gameMinutes, gameMinutes) || other.gameMinutes == gameMinutes)&&(identical(other.blockedThreshold, blockedThreshold) || other.blockedThreshold == blockedThreshold)&&(identical(other.noRatingPenalty, noRatingPenalty) || other.noRatingPenalty == noRatingPenalty)&&(identical(other.scarcePositionBonus, scarcePositionBonus) || other.scarcePositionBonus == scarcePositionBonus)&&(identical(other.scarcePositionMargin, scarcePositionMargin) || other.scarcePositionMargin == scarcePositionMargin)&&(identical(other.reservedSlotPenalty, reservedSlotPenalty) || other.reservedSlotPenalty == reservedSlotPenalty)&&(identical(other.candidateCutoff, candidateCutoff) || other.candidateCutoff == candidateCutoff)&&(identical(other.experienceMinutes, experienceMinutes) || other.experienceMinutes == experienceMinutes)&&(identical(other.playtimeOffset, playtimeOffset) || other.playtimeOffset == playtimeOffset));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SchedulerConfig&&(identical(other.gameMinutes, gameMinutes) || other.gameMinutes == gameMinutes)&&(identical(other.blockedThreshold, blockedThreshold) || other.blockedThreshold == blockedThreshold)&&(identical(other.noRatingPenalty, noRatingPenalty) || other.noRatingPenalty == noRatingPenalty)&&(identical(other.scarcePositionBonus, scarcePositionBonus) || other.scarcePositionBonus == scarcePositionBonus)&&(identical(other.scarcePositionMargin, scarcePositionMargin) || other.scarcePositionMargin == scarcePositionMargin)&&(identical(other.reservedSlotPenalty, reservedSlotPenalty) || other.reservedSlotPenalty == reservedSlotPenalty)&&(identical(other.candidateCutoff, candidateCutoff) || other.candidateCutoff == candidateCutoff)&&(identical(other.experienceMinutes, experienceMinutes) || other.experienceMinutes == experienceMinutes)&&(identical(other.playtimeOffset, playtimeOffset) || other.playtimeOffset == playtimeOffset)&&const DeepCollectionEquality().equals(other._compositions, _compositions)&&const DeepCollectionEquality().equals(other._teamNames, _teamNames));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,gameMinutes,blockedThreshold,noRatingPenalty,scarcePositionBonus,scarcePositionMargin,reservedSlotPenalty,candidateCutoff,experienceMinutes,playtimeOffset);
+int get hashCode => Object.hash(runtimeType,gameMinutes,blockedThreshold,noRatingPenalty,scarcePositionBonus,scarcePositionMargin,reservedSlotPenalty,candidateCutoff,experienceMinutes,playtimeOffset,const DeepCollectionEquality().hash(_compositions),const DeepCollectionEquality().hash(_teamNames));
 
 @override
 String toString() {
-  return 'SchedulerConfig(gameMinutes: $gameMinutes, blockedThreshold: $blockedThreshold, noRatingPenalty: $noRatingPenalty, scarcePositionBonus: $scarcePositionBonus, scarcePositionMargin: $scarcePositionMargin, reservedSlotPenalty: $reservedSlotPenalty, candidateCutoff: $candidateCutoff, experienceMinutes: $experienceMinutes, playtimeOffset: $playtimeOffset)';
+  return 'SchedulerConfig(gameMinutes: $gameMinutes, blockedThreshold: $blockedThreshold, noRatingPenalty: $noRatingPenalty, scarcePositionBonus: $scarcePositionBonus, scarcePositionMargin: $scarcePositionMargin, reservedSlotPenalty: $reservedSlotPenalty, candidateCutoff: $candidateCutoff, experienceMinutes: $experienceMinutes, playtimeOffset: $playtimeOffset, compositions: $compositions, teamNames: $teamNames)';
 }
 
 
@@ -293,7 +318,7 @@ abstract mixin class _$SchedulerConfigCopyWith<$Res> implements $SchedulerConfig
   factory _$SchedulerConfigCopyWith(_SchedulerConfig value, $Res Function(_SchedulerConfig) _then) = __$SchedulerConfigCopyWithImpl;
 @override @useResult
 $Res call({
- int gameMinutes, double blockedThreshold, double noRatingPenalty, double scarcePositionBonus, int scarcePositionMargin, double reservedSlotPenalty, double candidateCutoff, double experienceMinutes, double playtimeOffset
+ int gameMinutes, double blockedThreshold, double noRatingPenalty, double scarcePositionBonus, int scarcePositionMargin, double reservedSlotPenalty, double candidateCutoff, double experienceMinutes, double playtimeOffset, List<TeamComposition> compositions, List<String> teamNames
 });
 
 
@@ -310,7 +335,7 @@ class __$SchedulerConfigCopyWithImpl<$Res>
 
 /// Create a copy of SchedulerConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? gameMinutes = null,Object? blockedThreshold = null,Object? noRatingPenalty = null,Object? scarcePositionBonus = null,Object? scarcePositionMargin = null,Object? reservedSlotPenalty = null,Object? candidateCutoff = null,Object? experienceMinutes = null,Object? playtimeOffset = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? gameMinutes = null,Object? blockedThreshold = null,Object? noRatingPenalty = null,Object? scarcePositionBonus = null,Object? scarcePositionMargin = null,Object? reservedSlotPenalty = null,Object? candidateCutoff = null,Object? experienceMinutes = null,Object? playtimeOffset = null,Object? compositions = null,Object? teamNames = null,}) {
   return _then(_SchedulerConfig(
 gameMinutes: null == gameMinutes ? _self.gameMinutes : gameMinutes // ignore: cast_nullable_to_non_nullable
 as int,blockedThreshold: null == blockedThreshold ? _self.blockedThreshold : blockedThreshold // ignore: cast_nullable_to_non_nullable
@@ -321,7 +346,9 @@ as int,reservedSlotPenalty: null == reservedSlotPenalty ? _self.reservedSlotPena
 as double,candidateCutoff: null == candidateCutoff ? _self.candidateCutoff : candidateCutoff // ignore: cast_nullable_to_non_nullable
 as double,experienceMinutes: null == experienceMinutes ? _self.experienceMinutes : experienceMinutes // ignore: cast_nullable_to_non_nullable
 as double,playtimeOffset: null == playtimeOffset ? _self.playtimeOffset : playtimeOffset // ignore: cast_nullable_to_non_nullable
-as double,
+as double,compositions: null == compositions ? _self._compositions : compositions // ignore: cast_nullable_to_non_nullable
+as List<TeamComposition>,teamNames: null == teamNames ? _self._teamNames : teamNames // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

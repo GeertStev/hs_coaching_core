@@ -20,6 +20,14 @@ _SchedulerConfig _$SchedulerConfigFromJson(
   candidateCutoff: (json['candidateCutoff'] as num?)?.toDouble() ?? -5000,
   experienceMinutes: (json['experienceMinutes'] as num?)?.toDouble() ?? 6000,
   playtimeOffset: (json['playtimeOffset'] as num?)?.toDouble() ?? 0.01,
+  compositions:
+      (json['compositions'] as List<dynamic>?)
+          ?.map((e) => TeamComposition.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      defaultCompositions,
+  teamNames:
+      (json['teamNames'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      defaultTeamNames,
 );
 
 Map<String, dynamic> _$SchedulerConfigToJson(_SchedulerConfig instance) =>
@@ -33,4 +41,6 @@ Map<String, dynamic> _$SchedulerConfigToJson(_SchedulerConfig instance) =>
       'candidateCutoff': instance.candidateCutoff,
       'experienceMinutes': instance.experienceMinutes,
       'playtimeOffset': instance.playtimeOffset,
+      'compositions': instance.compositions.map((e) => e.toJson()).toList(),
+      'teamNames': instance.teamNames,
     };
