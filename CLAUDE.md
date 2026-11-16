@@ -118,6 +118,25 @@ lengths) lives in `lib/training/display/` on top of that timeline; it never chan
 - `append` must stay a plain write (no transaction, no server timestamp): Firestore's offline queue
   then delivers it later with the original tap time.
 
+## Team scheduler (`lib/scheduler/`, tests in `test/scheduler/`)
+Port of Geert's Google Sheet "Teamscheduler 4.1": a rating per player per position, balanced teams
+from the players present, and a log of practice games. Built step by step (models + rating engine
+first, then the team scheduler, the app screens, the pool screen).
+- **Pure Dart** like the match engine: no `flutter`/`firebase_*`/`cloud_*` imports, no
+  `DateTime.now()` (`scheduler_purity_test.dart`). Dates are calendar days as `yyyy-MM-dd` strings.
+- Ratings are **computed, never stored**: `computeRatings(players, games, adjustments, asOf, config)`
+  replays the whole log. Correcting a score just recomputes.
+- Every number of the formulas lives in `RatingConfig` (defaults = the sheet). No literals in the engine.
+- The engine reproduces the sheet exactly, including odd behaviour, marked `SHEET-x` in
+  `rating_engine.dart`. Don't "fix" those without Geert's OK: ratings must stay equal to the sheet.
+- `sheet_parity_test.dart` checks all 166 games of the 2026-11-15 export against the sheet's own
+  numbers. The fixture (`test/scheduler/fixtures/`) holds indexes and numbers only: **never commit
+  player names** (the full export lives outside git).
+- `SquadPlayer` (club roster, `clubs/{clubId}/players`) is separate from app members and from
+  `MatchPlayer`; `team/player_model.dart` is the old Apps Script model and goes away later.
+- A game is always white against black; the scheduler itself must handle any number of teams
+  (several sub-groups and levels within the squad).
+
 ## Riverpod 3
 - Hand-written providers only; no `@riverpod` codegen.
 - No `FamilyNotifier`/`FamilyAsyncNotifier`/`FamilyStreamNotifier`: use the base class, pass family
