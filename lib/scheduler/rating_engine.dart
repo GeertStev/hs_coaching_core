@@ -4,7 +4,7 @@ import 'rating_config.dart';
 import 'scheduler_models.dart';
 
 // Rating-engine van de Team scheduler: pure Dart, geen Flutter of Firebase,
-// geen `DateTime.now()`.
+// geen systeemklok (de datum is een parameter).
 //
 // Rekent uit startratings + wedstrijdlog + aanpassingen de rating van elke
 // speler-positie, exact zoals het blad "Teamscheduler 4.1 rating update".
